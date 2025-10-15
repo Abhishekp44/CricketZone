@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+    .ticket-viewer-section {
+        padding-top: 100px;
+        padding-bottom: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .ticket {
+        display: flex;
+        max-width: 800px;
+        width: 100%;
+        margin: 20px;
+        background: #2e2e2e;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        color: white;
+        border: 1px solid #444;
+    }
+
+    .ticket-main {
+        padding: 30px;
+        flex-grow: 1;
+    }
+
+    .ticket-header {
+        border-bottom: 1px dashed #666;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .ticket-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #ee1e46;
+        font-weight: bold;
+    }
+
+    .ticket-header p {
+        margin: 5px 0 0;
+        color: #ccc;
+    }
+
+    .ticket-teams {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .ticket-teams img {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+    }
+
+    .ticket-teams .vs {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #ee1e46;
+    }
+
+    .ticket-details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .detail-item h4 {
+        font-size: 0.9rem;
+        color: #aaa;
+        margin: 0 0 5px;
+        text-transform: uppercase;
+    }
+
+    .detail-item p {
+        font-size: 1.1rem;
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .ticket-stub {
+        background: #1e1e1e;
+        padding: 30px;
+        min-width: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        border-left: 2px dashed #666;
+        border-radius: 0 15px 15px 0;
+    }
+
+    .ticket-stub h3 {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        font-size: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #ee1e46;
+        margin: 0;
+    }
+
+    .qr-code {
+        width: 150px;
+        height: 150px;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .qr-code img {
+        width: 100%;
+        height: 100%;
+    }
+
+    .print-button {
+        width: 80%;
+        margin: 20px auto 0;
+    }
+
+    @media (max-width: 768px) {
+        .ticket {
+            flex-direction: column;
+        }
+        .ticket-stub {
+            border-left: none;
+            border-top: 2px dashed #666;
+            border-radius: 0 0 15px 15px;
+            writing-mode: horizontal-tb;
+            min-width: auto;
+        }
+        .ticket-stub h3 {
+            writing-mode: horizontal-tb;
+            transform: none;
+            margin-bottom: 20px;
+        }
+    }
+    @media print {
+        /* Hide everything that isn't the ticket itself */
+        body * {
+            visibility: hidden;
+        }
+
+        .ticket, .ticket * {
+            visibility: visible;
+        }
+
+        /* Position the ticket at the top of the print page */
+        .ticket {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-shadow: none; /* Remove shadow for printing */
+            border: 1px solid #000; /* Use a solid border for printing */
+        }
+
+        /* Ensure the stub's dashed border prints correctly */
+        .ticket-stub {
+            border-left: 2px dashed #000;
+        }
+
+        /* Make ticket text black for better readability on paper */
+        .ticket, .ticket h2, .ticket h5, .ticket p, .ticket h4 {
+            color: #000 !important;
+        }
+
+        /* Make colored elements stand out in black & white */
+        .ticket-header h2, .ticket-teams .vs {
+            color: #000 !important;
+            font-weight: bold;
+        }
+    }
+
+</style>
+
+<div class="container ticket-viewer-section">
+
+    <div class="ticket">
+        <div class="ticket-main">
+            <div class="ticket-header">
+                <h2>{{ booking.match.match_name }}</h2>
+                <p>Official Match Ticket</p>
+            </div>
+            <div class="ticket-teams">
+                <div class="team">
+                    <img src="{{ booking.match.team1.timage.url }}" alt="">
+                    <h5>{{ booking.match.team1.tname }}</h5>
+                </div>
+                <div class="vs">VS</div>
+                <div class="team">
+                    <img src="{{ booking.match.team2.timage.url }}" alt="">
+                    <h5>{{ booking.match.team2.tname }}</h5>
+                </div>
+            </div>
+            <div class="ticket-details-grid">
+                <div class="detail-item">
+                    <h4>Date & Time</h4>
+                    <p>{{ booking.match.date|date:"F d, Y" }} - 7:30 PM</p>
+                </div>
+                <div class="detail-item">
+                    <h4>Venue</h4>
+                    <p>{{ booking.match.venue }}</p>
+                </div>
+                 <div class="detail-item">
+                    <h4>Category / Stand</h4>
+                    <p>{{ booking.category.name }}</p>
+                </div>
+                <div class="detail-item">
+                    <h4>Seats</h4>
+                    <p>{{ booking.quantity }}</p>
+                </div>
+                <div class="detail-item">
+                    <h4>Booked By</h4>
+                    <p>{{ booking.user.get_full_name|default:booking.user.username }}</p>
+                </div>
+                <div class="detail-item">
+                    <h4>Booking ID</h4>
+                    <p>{{ booking.id }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="ticket-stub">
+            <h3>Admit One</h3>
+             <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ request.scheme }}://{{ request.get_host }}{% url 'download_ticket_pdf' booking.id %}" alt="QR Code for PDF Download">
+            </div>
+            <p><strong>ID:</strong> {{ booking.id }}</p>
+        </div>
+    </div>
+
+    <button onclick="window.print()" class="btn btn-primary print-button">
+        <i class="fa-solid fa-print me-2"></i>Print Ticket
+    </button>
+</div>
+
+{% endblock 'main' %}

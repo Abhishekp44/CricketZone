@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+    .booking-section {
+        padding-top: 100px;
+        padding-bottom: 50px;
+        color: #fff;
+    }
+
+    .match-summary-card, .booking-form-card {
+        background: linear-gradient(145deg, #2e2e2e, #1e1e1e);
+        border: 1px solid #444;
+        border-radius: 15px;
+        padding: 2.5rem;
+        height: 100%;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+    }
+
+    .teams-display {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .team-logo {
+        text-align: center;
+    }
+
+    .team-logo img {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+    }
+
+    .team-logo .team-name {
+        margin-top: 1rem;
+        font-weight: 600;
+        color: #ccc;
+    }
+
+    .vs-separator {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #ee1e46;
+    }
+
+    .match-info-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .match-info-list li {
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+    }
+    .match-info-list i {
+        color: #ee1e46;
+        margin-right: 15px;
+        width: 20px;
+    }
+    
+    .category-table {
+        width: 100%;
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+    }
+    .category-table th, .category-table td {
+        padding: 0.8rem;
+        text-align: left;
+        border-bottom: 1px solid #444;
+    }
+    .category-table th {
+        color: #ee1e46;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    .form-control, .form-select {
+        background-color: #333;
+        border: 1px solid #555;
+        color: #fff;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #333;
+        color: #fff;
+        border-color: #ee1e46;
+        box-shadow: 0 0 0 0.25rem rgba(238, 30, 70, 0.25);
+    }
+
+    .submit-btn {
+        background-color: #ee1e46;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 8px;
+        width: 100%;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .submit-btn:hover {
+        background-color: #d7183f;
+        transform: translateY(-2px);
+    }
+    
+</style>
+
+<!-- Add Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<div class="container booking-section">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-5">
+        <!-- Left Side: Match Summary -->
+        <div class="col-lg-6">
+            <div class="match-summary-card">
+                <h2 class="mb-4">{{ match.match_name|default_if_none:"Cricket Champions Series" }}</h2>
+                <div class="teams-display">
+                    <div class="team-logo">
+                        <img src="{{ match.team1.timage.url }}" alt="{{ match.team1.tname }}">
+                        <p class="team-name">{{ match.team1.tname }}</p>
+                    </div>
+                    <p class="vs-separator">VS</p>
+                    <div class="team-logo">
+                        <img src="{{ match.team2.timage.url }}" alt="{{ match.team2.tname }}">
+                        <p class="team-name">{{ match.team2.tname }}</p>
+                    </div>
+                </div>
+                <hr style="border-color: #444; margin: 2rem 0;">
+                <ul class="match-info-list">
+                    <li><i class="fa-solid fa-trophy"></i> {{ match.tournament.name|default_if_none:"Bilateral Series" }}</li>
+                    <li><i class="fa-solid fa-calendar-day"></i> {{ match.date|date:"l, F d, Y" }}</li>
+                    <li><i class="fa-solid fa-location-dot"></i> {{ match.venue }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Side: Booking Form -->
+        <div class="col-lg-6">
+            <div class="booking-form-card">
+                <h3 class="mb-4">Select Your Tickets</h3>
+
+                <!-- Ticket Categories Availability Table -->
+                <table class="category-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Available</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in availabilities %}
+                        <tr>
+                            <td>{{ item.category.name }}</td>
+                            <td>₹{{ item.category.price|floatformat:0 }}</td>
+                            <td>{{ item.available_seats }} seats</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4">Tickets are currently unavailable for this match.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if availabilities %}
+                <form method="post" action=""> {# Action is current URL #}
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">{{ form.category.label }}</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-4">
+                        <label for="{{ form.quantity.id_for_label }}" class="form-label">{{ form.quantity.label }}</label>
+                        {{ form.quantity }}
+                        {% if form.quantity.errors %}
+                            <div class="text-danger small mt-1">{{ form.quantity.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary submit-btn">Confirm Booking</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock 'main' %}

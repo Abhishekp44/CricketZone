@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+  /* [Your existing styles here] */
+  .match_text { color: white !important; }
+  .filter-label { color: white; margin-bottom: .5rem; }
+  .form-control { background-color: #262930 !important; color: white; border-color: #444; }
+  input[type="date"] { color: white !important; color-scheme: dark; }
+  .btn-group .btn { border-color: #ee1e46; color: #ee1e46; }
+  .btn-group .btn.active { background-color: #ee1e46; color: white; }
+  .btn-group .btn:hover { background-color: #d41a3d; color: white; }
+  .date-header { color: #fff; background-color: #1a1c21; padding: 8px 15px; border-radius: 5px; margin-top: 20px; margin-bottom: 15px; font-weight: bold; font-size: 1rem; }
+  .show-more-container { text-align: center; margin-top: 20px; }
+</style>
+
+<div class="site-section bg-dark">
+  <div class="container">
+
+    <div class="row" style="margin-top: 70px;">
+        <div class="col-12 mb-4 text-center">
+            <div class="btn-group" role="group" aria-label="Match Status Filter">
+                <button type="button" class="btn {% if not selected_status or selected_status == 'all' %}active{% endif %}" onclick="filterByStatus('all')">All</button>
+                <button type="button" class="btn {% if selected_status == 'upcoming' %}active{% endif %}" onclick="filterByStatus('upcoming')">Fixtures</button>
+                <button type="button" class="btn {% if selected_status == 'past' %}active{% endif %}" onclick="filterByStatus('past')">Results</button>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+              <label for="tournament" class="filter-label">Tournament:</label>
+              <select id="tournament" class="form-control">
+                  <option value="all">All Tournaments</option>
+                  {% for t in tournaments %}
+                      <option value="{{ t.id }}" {% if selected_tournament == t.id %}selected{% endif %}>{{ t.name }}</option>
+                  {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3 mb-3"><label for="start_date" class="filter-label">Start Date:</label><input type="date" id="start_date" value="{{ selected_start_date|default:'' }}" class="form-control"></div>
+            <div class="col-md-3 mb-3"><label for="end_date" class="filter-label">End Date:</label><input type="date" id="end_date" value="{{ selected_end_date|default:'' }}" class="form-control"></div>
+            <div class="col-md-3 mb-3">
+              <label for="format" class="filter-label">Format:</label>
+              <select id="format" class="form-control">
+                <option value="all">All Formats</option>
+                <option value="t20" {% if selected_format == 't20' %}selected{% endif %}>T20</option>
+                <option value="odi" {% if selected_format == 'odi' %}selected{% endif %}>ODI</option>
+                <option value="test" {% if selected_status == 'test' %}selected{% endif %}>Test</option>
+              </select>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" id="matches-container">
+        {% load match_extras %}
+        {% for match in matches %}
+
+        {% ifchanged match.date %}
+            <div class="col-12 date-group-header">
+                <div class="date-header">
+                    {{ match.date|date:"l, j F Y" }}
+                </div>
+            </div>
+        {% endifchanged %}
+
+        <div class="col-lg-12 mb-4 match-item">
+            <div class="bg-light p-3 rounded">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <div>
+                        {% if match.format == 't20' %}<h6 style="color: #fa0aea; font-weight: bold;">T20</h6>
+                        {% elif match.format == 'odi' %}<h6 style="color: #1ccec9; font-weight: bold;">ODI</h6>
+                        {% else %}<h6 style="color: #24d657; font-weight: bold;">Test</h6>{% endif %}
+                    </div>
+                    <div class="match_text"><strong>{{ match.tournament.name }}</strong></div>
+                    <div class="match_text"><small><i class="fas fa-map-marker-alt"></i> {{ match.venue }}</small></div>
+                </div>
+                <div class="col-md-4 match_text border-right border-left border-white">
+                    {% with innings=match.inning_set.all %}
+                        {% for team in match|both_teams %}
+                        <div class="d-flex justify-content-between py-1">
+                            <strong>{{ team.tname }}</strong>
+                            {% with inning=innings|get_inning_for_team:team %}
+                            {% if inning %}<span>{{ inning.total_runs }}/{{ inning.total_wickets }} ({{ inning.overs }} ov)</span>
+                            {% else %}<span>-</span>{% endif %}
+                            {% endwith %}
+                        </div>
+                        {% endfor %}
+                    {% endwith %}
+                    <div class="text-center mt-2"><strong>{{ match.result|default:"Upcoming" }}</strong></div>
+                </div>
+                <div class="col-md-4 d-flex align-items-center justify-content-center">
+                    <a href="{% url 'match_detail' match.match_id %}" class="btn btn-primary btn-sm">Match Details</a>
+                </div>
+            </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-white text-center">No matches found for the selected criteria.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="show-more-container">
+        <button id="show-more-btn" class="btn btn-outline-light" style="display: none;">Show More</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Keep your existing filter functions as they are
+function updateMatches() {
+    var startDate = document.getElementById('start_date').value;
+    var endDate = document.getElementById('end_date').value;
+    var matchFormat = document.getElementById('format').value;
+    var tournament = document.getElementById('tournament').value;
+    var url = new URL(window.location.href);
+    var params = url.searchParams;
+    if (startDate) { params.set('start_date', startDate); } else { params.delete('start_date'); }
+    if (endDate) { params.set('end_date', endDate); } else { params.delete('end_date'); }
+    if (tournament && tournament !== 'all') { params.set('tournament', tournament); } else { params.delete('tournament'); }
+    if (matchFormat && matchFormat !== 'all') { params.set('format', matchFormat); } else { params.delete('format'); }
+    params.delete('page');
+    window.location.href = url.href;
+}
+function filterByStatus(status) {
+    var url = new URL(window.location.href);
+    var params = url.searchParams;
+    if (status && status !== 'all') { url.searchParams.set('status', status); } else { url.searchParams.delete('status'); }
+    params.delete('page');
+    window.location.href = url.href;
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Attach listeners to filter controls
+    document.getElementById('tournament').addEventListener('change', updateMatches);
+    document.getElementById('start_date').addEventListener('change', updateMatches);
+    document.getElementById('end_date').addEventListener('change', updateMatches);
+    document.getElementById('format').addEventListener('change', updateMatches);
+
+    // --- Highlight: New "Show More" logic by Date ---
+    const matchesContainer = document.getElementById('matches-container');
+    if (!matchesContainer) return;
+
+    const showMoreBtn = document.getElementById('show-more-btn');
+    const allChildren = Array.from(matchesContainer.children);
+
+    // 1. Group rendered elements by date
+    const dateGroups = [];
+    let currentGroup = null;
+
+    allChildren.forEach(child => {
+        if (child.classList.contains('date-group-header')) {
+            // This is a new date header, so start a new group
+            currentGroup = { header: child, matches: [] };
+            dateGroups.push(currentGroup);
+        } else if (child.classList.contains('match-item') && currentGroup) {
+            // This is a match item, add it to the current date's group
+            currentGroup.matches.push(child);
+        }
+    });
+
+    const datesToShowPerClick = 5;
+    let visibleDateCount = 0;
+
+    // 2. Initially hide all groups beyond the first 5 dates
+    if (dateGroups.length > datesToShowPerClick) {
+        showMoreBtn.style.display = 'inline-block'; // Show the button
+        dateGroups.forEach((group, index) => {
+            if (index >= datesToShowPerClick) {
+                group.header.style.display = 'none';
+                group.matches.forEach(m => m.style.display = 'none');
+            }
+        });
+        visibleDateCount = datesToShowPerClick;
+    } else {
+        visibleDateCount = dateGroups.length;
+    }
+
+    // 3. Add click event to the "Show More" button
+    if (showMoreBtn) {
+        showMoreBtn.addEventListener('click', function() {
+            const nextLimit = visibleDateCount + datesToShowPerClick;
+
+            // Loop through the next set of date groups and make them visible
+            for (let i = visibleDateCount; i < nextLimit && i < dateGroups.length; i++) {
+                const group = dateGroups[i];
+                group.header.style.display = 'block';
+                group.matches.forEach(m => m.style.display = 'block');
+            }
+
+            // Update the count of visible dates
+            visibleDateCount = nextLimit;
+
+            // If all date groups are now visible, hide the button
+            if (visibleDateCount >= dateGroups.length) {
+                this.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+
+{% endblock 'main' %}

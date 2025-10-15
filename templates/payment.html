@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block 'main' %}
+
+<style>
+    .payment-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80vh;
+        color: white;
+        text-align: center;
+    }
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+</style>
+
+<div class="container payment-container">
+    <div>
+        <h2>Processing your payment...</h2>
+        <p>Please do not refresh or close this window.</p>
+        <div class="spinner-border mt-3" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    var options = {
+        "key": "{{ api_key }}",
+        "amount": "{{ order.amount }}",
+        "currency": "INR",
+        "name": "CricketZone",
+        "description": "Ticket Payment for {{ booking.match.match_name }}",
+        "image": "https://example.com/your_logo.png", // Optional: Add a logo URL
+        "order_id": "{{ order.id }}",
+        "handler": function (response){
+            // This function is called after a successful payment.
+            // We will submit a form to our backend to verify the payment.
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+            document.getElementById('payment-form').submit();
+        },
+        "prefill": {
+            "name": "{{ request.user.get_full_name }}",
+            "email": "{{ request.user.email }}",
+        },
+        "notes": {
+            "booking_id": "{{ booking.id }}"
+        },
+        "theme": {
+            "color": "#ee1e46"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+
+    // Open the checkout modal automatically
+    rzp1.open();
+
+    rzp1.on('payment.failed', function (response){
+        alert("Payment Failed: " + response.error.description);
+        window.location.href = "{% url 'my_bookings' %}"; // Redirect back to bookings on failure
+    });
+</script>
+
+<!-- Hidden form to send payment details to the success URL for verification -->
+<form id="payment-form" action="{% url 'payment_success' %}" method="POST" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+</form>
+
+{% endblock 'main' %}

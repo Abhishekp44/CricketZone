@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+<style>
+  /* All your existing styles remain unchanged */
+  .player-card {
+    width: 220px;
+    height: 300px;
+    background-image: linear-gradient(163deg, #ee1e46 0%, #3700ff 100%);
+    border-radius: 20px;
+    transition: all .3s;
+    margin-bottom: 2rem;
+  }
+  .player-card2 {
+    width: 220px;
+    height: 300px;
+    background-color: #1a1a1a;
+    border-radius: 20px;
+    transition: all .2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    color: #fff;
+    text-align: center;
+    position: relative;
+  }
+  .player-card:hover {
+    box-shadow: 0px 0px 30px 1px rgba(0, 255, 117, 0.30);
+  }
+  .player-card2:hover {
+    transform: scale(0.98);
+  }
+  .player-image-container {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #ee1e46;
+    margin-bottom: 15px;
+  }
+  .player-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .player-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+  .player-role {
+    font-size: 0.9rem;
+    color: #ccc;
+  }
+  .jersey-number {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #ee1e46;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ee1e46;
+  }
+
+  /* 1. Added style to make the link blend in */
+  .player-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+</style>
+
+<div class="site-section bg-dark">
+  <div class="container">
+    <div class="row mt-3 justify-content-center mb-5">
+      <h1 id="scorecard-entry-header">{{ team.tname }} - Players</h1>
+    </div>
+    <div class="row justify-content-center mb-5">
+      <div class="col-md-6 text-center">
+        <a href="{% url 'teams_view' %}" class="btn btn-outline-light">&larr; Back to All Teams</a>
+      </div>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+      <div class="col-md-8">
+        <form action="" method="get" class="d-flex" onsubmit="return false;">
+          <input
+            type="text"
+            name="q"
+            id="player-search-input" value="{{ request.GET.q }}"
+            placeholder="Search for a player by name..."
+            class="form-control bg-dark text-white"
+          >
+          <button type="submit" class="btn btn-primary ml-2">Search</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="row justify-content-center" id="player-list-container">
+      {% for player in players %}
+      <div class="col-auto d-flex justify-content-center">
+        <div class="player-card">
+          <a href="{% url 'player_detail' player.pid %}" class="player-card-link">
+            <div class="player-card2">
+              <div class="jersey-number">{{ player.pjr_no }}</div>
+              <div class="player-image-container">
+                {% if player.pimage %}
+                  <img src="{{ player.pimage.url }}" alt="{{ player.pname }}" class="player-image">
+                {% else %}
+                  <img src="https://placehold.co/150x150/FFFFFF/1a1a1a?text={{ player.pname|slice:':1' }}" alt="{{ player.pname }}" class="player-image">
+                {% endif %}
+              </div>
+              <div class="player-details">
+                <h5 class="player-name">{{ player.pname }}</h5>
+                <p class="player-role">{{ player.prole }}</p>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% if not players %}
+      <div class="col-12 text-center">
+        <h4 class="text-white">No Players Found</h4>
+        {% if request.GET.q %}
+          <p class="text-secondary">Your search for "{{ request.GET.q }}" did not match any players in this team.</p>
+        {% else %}
+          <p class="text-secondary">This team currently has no players listed.</p>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Your existing JavaScript for live search remains unchanged
+  const searchInput = document.getElementById('player-search-input');
+  const playerContainer = document.getElementById('player-list-container');
+  let debounceTimer;
+
+  searchInput.addEventListener('keyup', (e) => {
+    const query = e.target.value;
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      updatePlayerList(query);
+    }, 300);
+  });
+
+  async function updatePlayerList(query) {
+    const url = `${window.location.pathname}?q=${encodeURIComponent(query)}`;
+    try {
+      const response = await fetch(url);
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newPlayerList = doc.getElementById('player-list-container');
+      if (newPlayerList) {
+        playerContainer.innerHTML = newPlayerList.innerHTML;
+      }
+    } catch (error) {
+      console.error('Error fetching player list:', error);
+    }
+  }
+</script>
+
+{% endblock 'main' %}

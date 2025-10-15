@@ -1,0 +1,49 @@
+from django.urls import path
+from cricketapp import views
+from django.conf import settings
+from django.conf.urls.static import static
+from .views import PlayerCreateAPIView, TeamCreateAPIView, MatchCreateAPIView,MatchSquadCreateAPIView,InningCreateAPIView,BattingScoreCreateAPIView,BowlingScoreCreateAPIView
+
+
+
+urlpatterns = [
+    path('home', views.home),
+    path('admin_dashboard', views.admin_dashboard, name='admin_dashboard'),
+    path('', views.home),
+    path('scorecard_entry', views.scorecard_entry, name='scorecard_entry'),
+    path('match_squad', views.match_squad, name='match_squad'),
+    path('players/create/', PlayerCreateAPIView.as_view(), name='player-create'),
+    path('teams/create/', TeamCreateAPIView.as_view(), name='team-create'),
+    path('match/create/', MatchCreateAPIView.as_view(), name='match-create'),
+    path('matchsquad/create/', MatchSquadCreateAPIView.as_view(), name='matchsquad-create'),
+    path('inning/create/', InningCreateAPIView.as_view(), name='inning-create'),
+    path('batting/create/', BattingScoreCreateAPIView.as_view(), name='BattingScore-create'),
+    path('bowling/create/', BowlingScoreCreateAPIView.as_view(), name='BowlingScore-create'),
+    path('matches/',views.matches_view, name='matches'),
+    path('match_detail/<int:match_id>',views.match_detail, name='match_detail'),
+    path('teams/', views.teams_view, name='teams_view'),
+    path('teams/<int:tid>/', views.players_view, name='players_view'),
+    path('players/<int:pid>/', views.player_detail, name='player_detail'),
+    path('admin_api/', views.admin_api, name='admin_api'),
+    path('tickets/', views.tickets, name='tickets'),
+    # path('rankings',views.rankings),
+    # path('contact',views.contact),
+    # path('about',views.about),
+    path('login',views.user_login),
+    path('logout',views.user_logout),
+    path('signup',views.user_signup),
+    path('book-ticket/<int:match_id>/', views.book_ticket, name='book_ticket'),
+    path('my-bookings/', views.my_bookings, name='my_bookings'),
+    path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
+    path('payment/initiate/<int:booking_id>/', views.payment_initiate, name='payment_initiate'),
+    path('payment/success/', views.payment_success, name='payment_success'),
+    path('view-ticket/<int:booking_id>/', views.view_ticket, name='view_ticket'),
+    path('ticket/download/<int:booking_id>/', views.download_ticket_pdf, name='download_ticket_pdf'),
+    # path('ticket/<int:ticket_id>/add/', views.add_to_cart, name='add_to_cart'),
+    # path('order/', views.order, name='order'),
+    # path('payment/', views.payment_page, name='payment_page'),
+    # path('remove-from-cart/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
+
+]
+
+urlpatterns +=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

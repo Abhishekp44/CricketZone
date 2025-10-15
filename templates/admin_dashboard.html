@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block 'main' %}
+<style>
+    #wrapper {
+        min-height: 100vh;
+        display: flex;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #sidebar-wrapper {
+        width: 250px;
+        background-color: #343a40;
+        color: white;
+    }
+
+    #page-content-wrapper {
+        flex: 1;
+        padding: 20px;
+
+    }
+
+    .list-group-item {
+        border: none;
+        background: #262930 !important;
+        font-weight: bold;
+    }
+</style>
+<div class="site-section bg-dark">
+    <div class="container" id="wrapper">
+        <!-- Sidebar -->
+        {% include 'sidebar.html' %}
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" style="margin-top: 10%;">
+            <h2>Welcome to the Admin Dashboard</h2>
+            <p>This is your overview panel.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock 'main' %}

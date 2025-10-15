@@ -1,0 +1,16 @@
+asgiref==3.8.1
+certifi==2025.6.15
+charset-normalizer==3.4.2
+diff-match-patch==20241021
+Django==5.2.3
+django-import-export==4.3.8
+django-rest-framework==0.1.0
+djangorestframework==3.16.0
+idna==3.10
+pillow==11.2.1
+razorpay==1.4.2
+requests==2.32.4
+sqlparse==0.5.3
+tablib==3.8.0
+tzdata==2025.2
+urllib3==2.5.0

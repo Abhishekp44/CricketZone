@@ -1,0 +1,82 @@
+<!-- templates/dashboard/player_performance.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ player.pname }} Performance Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5" style="background-color: #1a1a1a; min-height: 100vh;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-white mb-4">{{ player.pname }} - Performance Analytics</h1>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card bg-dark text-white">
+                            <div class="card-header">
+                                <h4>Batting Performance by Format</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="battingChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card bg-dark text-white">
+                            <div class="card-header">
+                                <h4>Bowling Performance by Format</h4>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="bowlingChart" width="400" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'player_detail' player.pid %}" class="btn btn-outline-light">
+                        &larr; Back to Player Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Batting performance chart
+    var battingCtx = document.getElementById('battingChart').getContext('2d');
+    var battingChart = new Chart(battingCtx, {
+        type: 'bar',
+        data: {{ batting_data|safe }},
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Bowling performance chart
+    var bowlingCtx = document.getElementById('bowlingChart').getContext('2d');
+    var bowlingChart = new Chart(bowlingCtx, {
+        type: 'bar',
+        data: {{ bowling_data|safe }},
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

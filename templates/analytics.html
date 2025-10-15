@@ -1,0 +1,115 @@
+<!-- templates/dashboard/analytics.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Player Performance Analytics{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4">Player Performance Analytics Dashboard</h1>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Player Statistics</h4>
+                </div>
+                <div class="card-body">
+                    <p>View detailed statistics for individual players across all formats.</p>
+                    <a href="{% url 'player_performance' %}" class="btn btn-primary">Explore Player Stats</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Player Comparison</h4>
+                </div>
+                <div class="card-body">
+                    <p>Compare two players across different formats and statistics.</p>
+                    <a href="{% url 'compare_players' %}" class="btn btn-primary">Compare Players</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Performance Trends</h4>
+                </div>
+                <div class="card-body">
+                    <p>Analyze player performance trends over time.</p>
+                    <a href="{% url 'performance_trends' %}" class="btn btn-primary">View Trends</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Predictive Analytics</h4>
+                </div>
+                <div class="card-body">
+                    <p>Get predictions for player performance in upcoming matches.</p>
+                    <a href="{% url 'predictive_analytics' %}" class="btn btn-primary">View Predictions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Top Performers</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Matches</th>
+                                    <th>Runs</th>
+                                    <th>Wickets</th>
+                                    <th>Bat Avg</th>
+                                    <th>Bowl Avg</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for player in players|slice:":5" %}
+                                <tr>
+                                    <td>{{ player.pname }}</td>
+                                    <td>
+                                        {% for team in player.teams.all|slice:":1" %}
+                                            {{ team.tname }}
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ player.stats.test_stats.matches|add:player.stats.odi_stats.matches|add:player.stats.t20_stats.matches }}</td>
+                                    <td>{{ player.stats.career_total_runs }}</td>
+                                    <td>{{ player.stats.career_total_wickets }}</td>
+                                    <td>{{ player.stats.career_batting_average }}</td>
+                                    <td>
+                                        {% with total_wickets=player.stats.career_total_wickets %}
+                                        {% if total_wickets > 0 %}
+                                            {{ player.stats.test_stats.runs_conceded|add:player.stats.odi_stats.runs_conceded|add:player.stats.t20_stats.runs_conceded|div:total_wickets|floatformat:2 }}
+                                        {% else %}
+                                            0.00
+                                        {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

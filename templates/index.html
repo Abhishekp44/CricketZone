@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+    <div class="hero overlay" style="background-image: url('{% static 'images/home_bg.jpg' %}');">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 ml-auto">
+                    <h1 class="text-white">Welcome to CricketZone</h1>
+                    <p class="text-white mb-4">Your Ultimate Cricket Destination.</p>
+                    <p>
+                        <a href="/tickets" class="btn btn-primary py-3 px-4 mr-3">Book Ticket</a>
+                        <a href="#" class="more light">Learn More</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="latest-news">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 title-section">
+            <h2 class="heading">Latest News</h2>
+          </div>
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-10 news-post-holder">
+             <div class="news-post-widget">
+                <img class="img-responsive" src="{% static 'images/img_001.jpg' %}" alt="">
+                <div class="news-post-detail">
+                   <span class="date">20 march 2024</span>
+                   <h2><a href="blog-detail.html">Bumrah leaves a mark with legacy-defining WC show</a></h2>
+                   <p>Franklyn DaCosta Stephenson is not a name one would typically associate with the West Indies, but the 65-year-old was a pace-bowling all-rounder who never reached the international level. Had he not been banned for participating in a rebel tour of South Africa during the apartheid era, he could have emerged as one of the premier international all-rounders of the 1980s and 1990s. As the youngest player on the 1983/84 rebel tour of South Africa with the West Indies team, he was part of the group that "sowed the seed that grew the beanstalk that was the dismantling of apartheid." He also has an intriguing story to share about Jasprit Bumrah.</p>
+                </div>
+             </div>
+             <div class="news-post-widget">
+                <img class="img-responsive" src="{% static 'images/img_002.jpg' %}" alt="">
+                <div class="news-post-detail">
+                   <span class="date">20 march 2024</span>
+                   <h2><a href="blog-detail.html">India's World Cup win wasn't a feeling, it was an emotion</a></h2>
+                   <p>Virat Kohli had broken down the earliest, the moment the fifth delivery of the last over from Hardik didn't concede a boundary. Down on the long-off boundary, he threw his fist up in the air before immediately covering his eyes with his right hand. There were tears there, tears of joy, as he then took a deep breath put his hands to his knees and took a few more deep breaths while being bent and staring at the ground. He knew his team was nearly there, with only a single ball left in his T20I career for India.</p>
+                </div>
+             </div>
+             <div class="news-post-widget">
+              <img class="img-responsive" src="{% static 'images/img_003.jpg' %}" alt="">
+              <div class="news-post-detail">
+                 <span class="date">20 march 2016</span>
+                 <h2><a href="blog-detail.html">The World Cup final that was there to be won... until it wasn't</a></h2>
+                  <p>That's Aiden Markram at his press conference after his team had been beaten by India in the Men's T20 World Cup final at Kensington Oval in Bridgetown, Barbados on Saturday. Note the term: beaten. They were not disgraced. They did not choke.South Africa were in a winning position, but they did not squander it. The opposition were indeed, in Markram's words, "allowed" to play well. If they play better than you, you lose and they win. That's how sport works. And India were better in the last five overs.</p>
+              </div>
+           </div>
+          </div>
+       </div>
+
+      </div>
+    </div>
+
+    <!---
+    <div class="site-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-6 title-section">
+            <h2 class="heading">Videos</h2>
+          </div>
+          <div class="col-6 text-right">
+            <div class="custom-nav">
+            <a href="#" class="js-custom-prev-v2"><span class="icon-keyboard_arrow_left"></span></a>
+            <span></span>
+            <a href="#" class="js-custom-next-v2"><span class="icon-keyboard_arrow_right"></span></a>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="owl-4-slider owl-carousel">
+          <div class="item">
+            <div class="video-media">
+              <img src="{% static 'images/img_1.jpg' %}" alt="Image" class="img-fluid">
+              <a href="https://vimeo.com/139714818" class="d-flex play-button align-items-center" data-fancybox>
+                <span class="icon mr-3">
+                  <span class="icon-play"></span>
+                </span>
+                <div class="caption">
+                  <h3 class="m-0">Dogba set for Juvendu return?</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="item">
+            <div class="video-media">
+              <img src="{% static 'images/img_2.jpg' %}" alt="Image" class="img-fluid">
+              <a href="https://vimeo.com/139714818" class="d-flex play-button align-items-center" data-fancybox>
+                <span class="icon mr-3">
+                  <span class="icon-play"></span>
+                </span>
+                <div class="caption">
+                  <h3 class="m-0">Kai Nets Double To Secure Comfortable Away Win</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="item">
+            <div class="video-media">
+              <img src="{% static 'images/img_3.jpg' %}" alt="Image" class="img-fluid">
+              <a href="https://vimeo.com/139714818" class="d-flex play-button align-items-center" data-fancybox>
+                <span class="icon mr-3">
+                  <span class="icon-play"></span>
+                </span>
+                <div class="caption">
+                  <h3 class="m-0">Romolu to stay at Real Nadrid?</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="video-media">
+              <img src="{% static 'images/img_1.jpg' %}" alt="Image" class="img-fluid">
+              <a href="https://vimeo.com/139714818" class="d-flex play-button align-items-center" data-fancybox>
+                <span class="icon mr-3">
+                  <span class="icon-play"></span>
+                </span>
+                <div class="caption">
+                  <h3 class="m-0">Dogba set for Juvendu return?</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="item">
+            <div class="video-media">
+              <img src="{% static 'images/img_2.jpg' %}" alt="Image" class="img-fluid">
+              <a href="https://vimeo.com/139714818" class="d-flex play-button align-items-center" data-fancybox>
+                <span class="icon mr-3">
+                  <span class="icon-play"></span>
+                </span>
+                <div class="caption">
+                  <h3 class="m-0">Kai Nets Double To Secure Comfortable Away Win</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+          <div class="item">
+            <div class="video-media">
+              <img src="{% static 'images/img_3.jpg' %}" alt="Image" class="img-fluid">
+              <a href="https://vimeo.com/139714818" class="d-flex play-button align-items-center" data-fancybox>
+                <span class="icon mr-3">
+                  <span class="icon-play"></span>
+                </span>
+                <div class="caption">
+                  <h3 class="m-0">Romolu to stay at Real Nadrid?</h3>
+                </div>
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+    --->
+
+{% endblock 'main' %}

@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+    .ticket-section {
+        padding-top: 100px;
+        padding-bottom: 50px;
+    }
+
+    .match-ticket-card {
+        background: linear-gradient(145deg, #2e2e2e, #1e1e1e);
+        border: 1px solid #444;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .match-ticket-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(238, 30, 70, 0.3);
+    }
+    
+    .card-header-teams {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: rgba(0,0,0,0.2);
+    }
+    
+    .team-info {
+        text-align: center;
+        width: 100px;
+    }
+
+    .team-info img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        margin-bottom: 8px;
+    }
+
+    .team-info .team-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #ccc;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .vs-separator {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #ee1e46;
+        margin: 0 15px;
+    }
+
+    .card-body-details {
+        padding: 20px;
+        flex-grow: 1; /* Allows body to fill available space */
+    }
+
+    .match-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+    
+    .match-meta {
+        list-style: none;
+        padding: 0;
+        font-size: 0.95rem;
+        color: #ddd;
+    }
+    
+    .match-meta li {
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .match-meta i {
+        color: #ee1e46;
+        margin-right: 10px;
+        width: 16px; /* For alignment */
+    }
+
+    .format-badge {
+        position: absolute;
+        top: 15px;
+        right: -1px;
+        background-color: #ee1e46;
+        color: white;
+        padding: 5px 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        border-radius: 10px 0 0 10px;
+        box-shadow: -2px 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .card-footer-action {
+        background-color: #1a1a1a;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #444;
+    }
+
+    .price-info .price-label {
+        font-size: 0.8rem;
+        color: #aaa;
+        margin: 0;
+    }
+
+    .price-info .price-value {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #fff;
+        margin: 0;
+    }
+    
+    .book-now-btn {
+        background-color: #ee1e46;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-weight: bold;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: background-color 0.3s ease;
+    }
+
+    .book-now-btn:hover {
+        background-color: #d7183f;
+    }
+    
+    .book-now-btn:disabled {
+        background-color: #555;
+        cursor: not-allowed;
+    }
+
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+
+<div class="container ticket-section">
+    <h1 class="text-center text-light mb-5">Book Match Tickets</h1>
+    
+    <div class="row gy-4">
+        {% for match in matches %}
+        <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
+            <div class="match-ticket-card position-relative">
+                
+                <div class="format-badge">{{ match.get_format_display }}</div>
+
+                <div class="card-header-teams">
+                    <div class="team-info">
+                        <img src="{{ match.team1.timage.url }}" alt="{{ match.team1.tname }}">
+                        <div class="team-name">{{ match.team1.tname }}</div>
+                    </div>
+                    <div class="vs-separator">VS</div>
+                    <div class="team-info">
+                        <img src="{{ match.team2.timage.url }}" alt="{{ match.team2.tname }}">
+                        <div class="team-name">{{ match.team2.tname }}</div>
+                    </div>
+                </div>
+
+                <div class="card-body-details">
+                    <h5 class="match-title">{{ match.match_name|default_if_none:"Cricket Champions Series" }}</h5>
+                    <ul class="match-meta">
+                        <li><i class="fa-solid fa-calendar-day"></i> {{ match.date|date:"F d, Y" }}</li>
+                        <li><i class="fa-solid fa-location-dot"></i> {{ match.venue }}</li>
+                    </ul>
+                </div>
+
+                <div class="card-footer-action">
+                    <div class="price-info">
+                        {% if match.min_price %}
+                            <p class="price-label">Starts From</p>
+                            <p class="price-value">₹{{ match.min_price|floatformat:0 }}</p>
+                        {% else %}
+                            <p class="price-value">Unavailable</p>
+                        {% endif %}
+                    </div>
+                    <a href="/book-ticket/{{ match.match_id }}/" class="ms-auto">
+                        <button class="book-now-btn" {% if not match.min_price %}disabled{% endif %}>
+                            {% if not match.min_price %}Sold Out{% else %}Book Now{% endif %}
+                        </button>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center" role="alert">
+                    No upcoming matches found with the selected criteria.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock 'main' %}

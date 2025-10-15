@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+    .bookings-section {
+        padding-top: 100px;
+        padding-bottom: 50px;
+        color: #fff;
+    }
+    .booking-card {
+        background: linear-gradient(145deg, #2e2e2e, #1e1e1e);
+        border: 1px solid #444;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+    .booking-header {
+        background-color: rgba(0,0,0,0.2);
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #444;
+    }
+    .match-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .booking-date {
+        font-size: 0.9rem;
+        color: #ccc;
+    }
+    .booking-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .booking-details {
+        flex: 1 1 300px;
+    }
+    .detail-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+    .detail-item i {
+        color: #ee1e46;
+        margin-right: 10px;
+        width: 20px;
+    }
+    .booking-actions {
+        flex: 0 0 auto;
+        padding-left: 1rem;
+    }
+    .cancel-btn {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.2s ease-in-out;
+    }
+    .cancel-btn:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+        transform: translateY(-2px);
+    }
+    .empty-bookings {
+        background-color: #2c2c2c;
+        border-radius: 15px;
+        padding: 4rem;
+    }
+</style>
+
+<!-- Add Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<div class="container bookings-section">
+    <h1 class="text-center text-light mb-5">My Bookings</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% for booking in bookings %}
+    <div class="booking-card">
+        <div class="booking-header">
+            <p class="match-name">{{ booking.match.match_name }}</p>
+            <span class="booking-date">Booked on: {{ booking.booking_time|date:"F d, Y" }}</span>
+        </div>
+        <div class="booking-body">
+            <div class="booking-details">
+                <p class="detail-item"><i class="fa-solid fa-users"></i> {{ booking.match.team1.tname }} vs {{ booking.match.team2.tname }}</p>
+                <p class="detail-item"><i class="fa-solid fa-ticket"></i> <strong>{{ booking.quantity }}</strong> x {{ booking.category.name }}</p>
+                <p class="detail-item"><i class="fa-solid fa-money-bill-wave"></i> Total Price: <strong>₹{{ booking.total_price|floatformat:0 }}</strong></p>
+            </div>
+            <div class="booking-actions">
+                <!-- Button to trigger the cancellation modal -->
+                <button type="button" class="btn btn-danger cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal" data-booking-id="{{ booking.id }}">
+                    Cancel Booking
+                </button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center empty-bookings">
+        <h2 class="text-light">You have no active bookings.</h2>
+        <p class="text-muted mb-4">Time to catch a live game!</p>
+        <a href="{% url 'tickets' %}" class="btn btn-primary btn-lg" style="background-color: #ee1e46; border:none;">Browse Matches</a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Cancellation Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="cancelModalLabel">Confirm Cancellation</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to cancel this booking? This action cannot be undone.
+      </div>
+      <div class="modal-footer border-secondary">
+        <form id="cancelForm" method="post" action="">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// JavaScript to dynamically set the form action in the modal
+document.addEventListener('DOMContentLoaded', function () {
+    var cancelModal = document.getElementById('cancelModal');
+    cancelModal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        var button = event.relatedTarget;
+        // Extract info from data-booking-id attribute
+        var bookingId = button.getAttribute('data-booking-id');
+        
+        // Update the form's action
+        var cancelForm = document.getElementById('cancelForm');
+        // Construct the URL dynamically
+        cancelForm.action = `/cancel-booking/${bookingId}/`;
+    });
+});
+</script>
+

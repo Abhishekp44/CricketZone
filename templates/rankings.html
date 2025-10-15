@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+    <div class="hero overlay" style="background-image: url('images/bg_3.jpg');">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-5 mx-auto text-center">
+            <h1 class="text-white">Rankings</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    <div class="container my-5">
+    <ul class="nav rank-nav mb-2" id="rankingTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link {% if selected_format == 1 %}active{% endif %}" id="test-tab" data-toggle="tab" href="#test" role="tab">Test</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if selected_format == 2 %}active{% endif %}" id="odi-tab" data-toggle="tab" href="#odi" role="tab">ODI</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if selected_format == 3 %}active{% endif %}" id="t20-tab" data-toggle="tab" href="#t20" role="tab">T20</a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="rankingTabsContent">
+        <!-- Test Rankings -->
+        <div class="tab-pane fade {% if selected_format == 1 %}show active{% endif %}" id="test" role="tabpanel">
+            <div class="row justify-content-center mb-2">
+                <h3>Test - Team Ranking</h3>
+            </div>
+            <div class="row w-100">
+                <div class="col-md-12">
+                        <div class="widget-next-match">
+                            <table class="table custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pos</th>
+                                        <th>Team</th>
+                                        <th>PTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ranking in test_rankings %}
+                                    <tr>
+                                        <td>{{ ranking.rank }}</td>
+                                        <td><img src="{{ ranking.team.flag.url }}" alt="{{ ranking.team.name }} Flag" class="team-flag"><strong class="text-white">{{ ranking.team.name }}</strong></td>
+                                        <td>{{ ranking.points }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+        <!-- ODI Rankings -->
+        <div class="tab-pane fade {% if selected_format == 2 %}show active{% endif %}" id="odi" role="tabpanel">
+            <div class="row justify-content-center mb-2">
+                <h3>ODI - Team Ranking</h3>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+
+                        <div class="widget-next-match">
+                            <table class="table custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pos</th>
+                                        <th>Team</th>
+                                        <th>PTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ranking in odi_rankings %}
+                                    <tr>
+                                        <td>{{ ranking.rank }}</td>
+                                        <td><img src="{{ ranking.team.flag.url }}" alt="{{ ranking.team.name }} Flag" class="team-flag"><strong class="text-white">{{ ranking.team.name }}</strong></td>
+                                        <td>{{ ranking.points }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- T20 Rankings -->
+        <div class="tab-pane fade {% if selected_format == 3 %}show active{% endif %}" id="t20" role="tabpanel">
+            <div class="row justify-content-center mb-2">
+                <h3>T20 - Team Ranking</h3>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                        <div class="widget-next-match">
+                            <table class="table custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Pos</th>
+                                        <th>Team</th>
+                                        <th>PTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ranking in t20_rankings %}
+                                    <tr>
+                                        <td>{{ ranking.rank }}</td>
+                                        <td><img src="{{ ranking.team.flag.url }}" alt="{{ ranking.team.name }} Flag" class="team-flag"><strong class="text-white">{{ ranking.team.name }}</strong></td>
+                                        <td>{{ ranking.points }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+{% endblock 'main' %}

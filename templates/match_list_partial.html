@@ -1,0 +1,73 @@
+{% load match_extras %}
+
+{% for match in matches %}
+
+  <!-- Display date header only when it changes within this batch of results -->
+  {% ifchanged match.date %}
+    <div class="col-12">
+      <div class="date-header">
+          {{ match.date|date:"l, j F Y" }}
+      </div>
+    </div>
+  {% endifchanged %}
+
+  <div class="col-lg-12 mb-4">
+      <div class="bg-light p-3 rounded">
+        <div class="row align-items-center">
+
+            <!-- Column 1: Match Info -->
+            <div class="col-md-4">
+              <div>
+                  {% if match.format == 't20' %}
+                  <h6 style="color: #fa0aea; font-weight: bold;">T20</h6>
+                  {% elif match.format == 'odi' %}
+                  <h6 style="color: #1ccec9; font-weight: bold;">ODI</h6>
+                  {% else %}
+                  <h6 style="color: #24d657; font-weight: bold;">Test</h6>
+                  {% endif %}
+              </div>
+              <div class="match_text">
+                  <strong>{{ match.tournament.name }}</strong>
+              </div>
+              <div class="match_text">
+                  <small><i class="fas fa-map-marker-alt"></i> {{ match.venue }}</small>
+              </div>
+            </div>
+
+            <!-- Column 2: Team Scores -->
+            <div class="col-md-4 match_text border-right border-left border-white">
+              {% with innings=match.inning_set.all %}
+                  {% for team in match|both_teams %}
+                  <div class="d-flex justify-content-between py-1">
+                      <strong>{{ team.tname }}</strong>
+                      {% with inning=innings|get_inning_for_team:team %}
+                      {% if inning %}
+                          <span>{{ inning.total_runs }}/{{ inning.total_wickets }} ({{ inning.overs }} ov)</span>
+                      {% else %}
+                          <span>-</span>
+                      {% endif %}
+                      {% endwith %}
+                  </div>
+                  {% endfor %}
+              {% endwith %}
+              <div class="text-center mt-2">
+                  <strong>{{ match.result|default:"Upcoming" }}</strong>
+              </div>
+            </div>
+
+            <!-- Column 3: Match Details Button -->
+            <div class="col-md-4 d-flex align-items-center justify-content-center">
+              <a href="{% url 'match_detail' match.match_id %}" class="btn btn-primary btn-sm">Match Details</a>
+            </div>
+
+        </div>
+      </div>
+  </div>
+{% empty %}
+  <!-- Only show this message on the first page load if there are no results -->
+  {% if not request.GET.page or request.GET.page == '1' %}
+  <div class="col-12">
+      <p class="text-white text-center">No matches found for the selected criteria.</p>
+  </div>
+  {% endif %}
+{% endfor %}

@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+    .bookings-section {
+        padding-top: 100px;
+        padding-bottom: 50px;
+    }
+
+    .booking-card {
+        background: linear-gradient(145deg, #2e2e2e, #1e1e1e);
+        border: 1px solid #444;
+        border-radius: 15px;
+        color: #fff;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .booking-header {
+        background-color: rgba(0,0,0,0.2);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #444;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .booking-header h5 {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+    
+    .booking-header .booking-date {
+        font-size: 0.9rem;
+        color: #ccc;
+    }
+
+    .booking-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-wrap: wrap; /* Allow wrapping on small screens */
+        align-items: center;
+    }
+
+    .team-logos img {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+    }
+    
+    .team-logos .vs-separator {
+        font-weight: bold;
+        color: #ee1e46;
+        margin: 0 1rem;
+    }
+
+    .booking-details {
+        margin-left: 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .booking-details p {
+        margin-bottom: 0.5rem;
+        color: #ddd;
+    }
+
+    .booking-details strong {
+        color: #fff;
+    }
+
+    .booking-footer {
+        background-color: #1a1a1a;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #444;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 0 0 15px 15px;
+    }
+
+    .total-price {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    .actions .btn {
+        margin-left: 0.5rem;
+    }
+
+    .pay-now-btn {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    .pay-now-btn:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+
+    .cancel-btn {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .cancel-btn:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+
+    .view-ticket-btn {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .view-ticket-btn:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+
+    .paid-badge {
+        font-size: 1rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+
+</style>
+
+<!-- Add Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+<div class="container bookings-section">
+    <h1 class="text-center text-light mb-5">My Bookings</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% for booking in bookings %}
+    <div class="booking-card">
+        <div class="booking-header">
+            <h5>{{ booking.match.match_name }}</h5>
+            <span class="booking-date">Booked on: {{ booking.booking_time|date:"F d, Y" }}</span>
+        </div>
+        <div class="booking-body">
+            <div class="team-logos d-flex align-items-center">
+                <img src="{{ booking.match.team1.timage.url }}" alt="{{ booking.match.team1.tname }}">
+                <span class="vs-separator">VS</span>
+                <img src="{{ booking.match.team2.timage.url }}" alt="{{ booking.match.team2.tname }}">
+            </div>
+            <div class="booking-details">
+                <p><i class="fa-solid fa-calendar-day me-2 text-primary"></i> <strong>Match Date:</strong> {{ booking.match.date|date:"F d, Y" }}</p>
+                <p><i class="fa-solid fa-location-dot me-2 text-primary"></i> <strong>Venue:</strong> {{ booking.match.venue }}</p>
+                <p><i class="fa-solid fa-ticket me-2 text-primary"></i> <strong>Category:</strong> {{ booking.category.name }} ({{ booking.quantity }} ticket{{ booking.quantity|pluralize }})</p>
+            </div>
+        </div>
+        <div class="booking-footer">
+            <span class="total-price">Total: ₹{{ booking.total_price|floatformat:0 }}</span>
+            <div class="actions d-flex">
+                {% if booking.payment.status == 'Pending' %}
+                    <a href="{% url 'payment_initiate' booking_id=booking.id %}" class="btn btn-success pay-now-btn">Pay Now</a>
+                    <button class="btn btn-secondary cancel-btn" data-bs-toggle="modal" data-bs-target="#cancelModal-{{ booking.id }}">
+                        Cancel
+                    </button>
+                {% elif booking.payment.status == 'Paid' %}
+                    <span class="paid-badge me-3"><i class="fa-solid fa-check-circle"></i> PAID</span>
+                    <a href="{% url 'view_ticket' booking_id=booking.id %}" class="btn btn-primary view-ticket-btn">View Ticket</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancellation Confirmation Modal -->
+    <div class="modal fade" id="cancelModal-{{ booking.id }}" tabindex="-1" aria-labelledby="cancelModalLabel-{{ booking.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="cancelModalLabel-{{ booking.id }}">Confirm Cancellation</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to cancel your booking for <strong>{{ booking.match.match_name }}</strong>? This action cannot be undone.
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <form action="{% url 'cancel_booking' booking_id=booking.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center" role="alert">
+                You have no active bookings. <a href="{% url 'tickets' %}" class="alert-link">Why not book one now?</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock 'main' %}
+

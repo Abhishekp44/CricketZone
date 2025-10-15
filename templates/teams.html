@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+<style>
+  /* From Uiverse.io by Tiagoadag */
+  .team-card {
+    width: 200px;
+    height: 200px;
+    background-image: linear-gradient(163deg, #ee1e46 0%, #3700ff 100%);
+    border-radius: 20px;
+    transition: all .3s;
+    margin-bottom: 2rem; /* Added margin for spacing between rows */
+  }
+
+  .team-card2 {
+    width: 200px;
+    height: 200px;
+    background-color: white;
+    /* FIX: Added a value for border-radius to match the container */
+    border-radius: 20px; 
+    transition: all .2s;
+    display: flex; /* Helps in centering the image */
+    align-items: center;
+    justify-content: center;
+  }
+
+  .team-card2:hover {
+    transform: scale(0.95);
+    border-radius: 20px;
+  }
+
+  .team-card:hover {
+    box-shadow: 0px 0px 30px 1px rgba(0, 255, 117, 0.30);
+  }
+
+  /* Custom style for the team image to fit the card */
+  .team-image {
+      width: 170px;
+      height: 170px;
+      object-fit: contain; /* Use contain to prevent image stretching */
+  }
+</style>
+
+<div class="site-section bg-dark">
+  <div class="container">
+    <div class="row mt-3 justify-content-center mb-5">
+      <h1 id="scorecard-entry-header">Teams</h1>
+    </div>
+
+    {% regroup teams by get_team_type_display as grouped_teams %}
+
+    {% if not teams %}
+      <div class="col-12 text-center">
+          <p class="text-white">No teams have been added yet.</p>
+      </div>
+    {% endif %}
+
+    {% for group in grouped_teams %}
+      <div class="row justify-content-center mt-4">
+        <div class="col-12 text-center mb-3">
+          <h2 class="text-white">{{ group.grouper }}</h2>
+        </div>
+      </div>
+      
+      <div class="row justify-content-center">
+        {% for team in group.list %}
+        <div class="col-auto d-flex justify-content-center">
+          {% if team.pk %}
+          <div class="team-card">
+            <a href="{% url 'players_view' team.pk %}">
+              <div class="team-card2 p-3">
+                {% if team.timage %}
+                <img src="{{ team.timage.url }}" alt="{{ team.tname }}" class="team-image">
+                {% else %}
+                <img src="https://placehold.co/170x170/FFFFFF/1a1a1a?text={{ team.tname|slice:':1' }}" alt="{{ team.tname }}" class="team-image">
+                {% endif %}
+              </div>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+{% endblock 'main' %}

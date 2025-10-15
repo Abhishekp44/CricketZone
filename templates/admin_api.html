@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block 'main' %}
+<style>
+    /* Basic layout styles from your admin dashboard */
+    #wrapper {
+        min-height: 100vh;
+        display: flex;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    #sidebar-wrapper {
+        width: 250px;
+        background-color: #343a40; /* Fallback color */
+        color: white;
+    }
+
+    #page-content-wrapper {
+        flex: 1;
+        padding: 20px;
+    }
+
+    .list-group-item {
+        border: none;
+        background: #262930 !important;
+        font-weight: bold;
+    }
+
+    /* Styles for the new settings cards */
+    .settings-card {
+        background-color: #262930;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: box-shadow 0.3s ease;
+    }
+
+    .settings-card:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-card h3 {
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+    }
+
+    .settings-card p {
+        color: #ffffff;
+        font-size: 0.95rem;
+    }
+
+    .settings-btn {
+        background-color: #ee1e46;
+        color: white;
+        font-weight: 600;
+        padding: 0.6rem 1.2rem;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 1rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .settings-btn:hover {
+        background-color: #c81235;
+        color: white;
+    }
+</style>
+
+<div class="site-section bg-dark">
+    <div class="container" id="wrapper">
+        <!-- Sidebar -->
+        {% include 'sidebar.html' %}
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" style="margin-top: 10%;">
+            <h2>Settings</h2>
+            <p>Manage your application entities from this panel.</p>
+
+            <div class="mt-4">
+                <!-- Add Teams Card -->
+                <div class="settings-card">
+                    <h3>Add Teams</h3>
+                    <p>Create and manage the teams participating in the league.</p>
+                    <a href="/teams/create/" class="settings-btn">Create Team</a>
+                </div>
+
+                <!-- Add Players Card -->
+                <div class="settings-card">
+                    <h3>Add Players</h3>
+                    <p>Add new players and assign them to their respective teams.</p>
+                    <a href="/players/create/" class="settings-btn">Create Player</a>
+                </div>
+
+                <!-- Add Match Squad Card -->
+                <div class="settings-card">
+                    <h3>Add Match Squad</h3>
+                    <p>Define the playing squad for an upcoming match.</p>
+                    <a href="/matchsquad/create/" class="settings-btn">Create Match Squad</a>
+                </div>
+
+                <!-- Create Matches Card -->
+                <div class="settings-card">
+                    <h3>Create Matches</h3>
+                    <p>Schedule new matches, setting the date, venue, and competing teams.</p>
+                    <a href="/match/create/" class="settings-btn">Create Match</a>
+                </div>
+
+                <div class="settings-card">
+                    <h3>Create Match Innings</h3>
+                    <p>Add Innings of Matches which contain match detail.</p>
+                    <a href="/inning/create/" class="settings-btn">Create Inning</a>
+                </div>
+
+                <div class="settings-card">
+                    <h3>Add Batting Score</h3>
+                    <a href="/batting/create/" class="settings-btn">Add Batting Score</a>
+                </div>
+
+                <div class="settings-card">
+                    <h3>Add Bowling Score</h3>
+                    <a href="/bowling/create/" class="settings-btn">Add Bowling Score</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock 'main' %}
