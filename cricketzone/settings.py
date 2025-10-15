@@ -12,9 +12,12 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+dotenv.load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -29,8 +32,10 @@ DEBUG = True
 ALLOWED_HOSTS = ['abhishekphapale101.pythonanywhere.com']
 
 EMAIL_HOST='smtp.gmail.com'
-EMAIL_HOST_USER='abhiphapale101@gmail.com'
-EMAIL_HOST_PASSWORD='cnrb jijv vrzm bpvq'
+# EMAIL_HOST_USER='abhiphapale101@gmail.com'
+# EMAIL_HOST_PASSWORD='cnrb jijv vrzm bpvq'
+EMAIL_HOST_USER = os.getenv('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_APP_PASSWORD')
 EMAIL_PORT='587'
 EMAIL_USE_TLS='True'
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
