@@ -48,6 +48,11 @@ INSTALLED_APPS = [
     'import_export',
     'cricketapp',
     'rest_framework',
+    'django.contrib.sites',  
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware', 
 ]
 
 ROOT_URLCONF = 'cricketzone.urls'
@@ -150,3 +156,34 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 RAZORPAY_KEY_ID = 'rzp_test_RF2Q505JPYXppp'
 RAZORPAY_KEY_SECRET = 'aSQ5Y1N0iqV1JHHDGb5B2H1V'
 
+# Add this line at the bottom of the file
+SITE_ID = 1
+
+# Add Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Provider specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+        'APP': {
+            # Replace with your keys
+            'client_id': '37487505745-pddeg1ir9oqbl5bqtbt25r6h328af9qj.apps.googleusercontent.com',
+            'secret': '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',
+        }
+    }
+}
+
+# Redirect users after login/logout
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
