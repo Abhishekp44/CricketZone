@@ -190,4 +190,10 @@ class TeamStandingAdmin(ImportExportModelAdmin):
     ordering = ('-points', '-net_run_rate')
 
 
+@admin.register(NewsArticle)
+class NewsArticleAdmin(ImportExportModelAdmin):
+    list_display = ('title', 'date')
+    list_filter = ('date',)
+    search_fields = ('title', 'content')
+    ordering = ('-date',)
 

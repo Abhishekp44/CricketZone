@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+<style>
+    .hero.overlay:before {
+        height: 500px !important;
+    }
+    .hero, .hero>.container>.row {
+        height: 400px !important;
+    }
+</style>
+
+<div class="hero overlay" style="background-image: url('{% static 'images/auth_bg.jpg' %}');">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 ml-auto">
+                <h1 class="text-white">About CricketZone</h1>
+                <p class="text-white mb-4">Your ultimate destination for everything cricket.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container site-section">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Our Mission</h2>
+            <p>Welcome to CricketZone! Our mission is to provide cricket fans with the most comprehensive, engaging, and up-to-date platform for their favorite sport. Whether you're here to check live scores, dive into player stats, or book tickets for the next big match, we've got you covered.</p>
+            
+            <hr class="my-5">
+
+            <h2>What We Offer</h2>
+            <p>CricketZone is built by fans, for fans. We are dedicated to bringing you the best experience with features like:</p>
+            
+            <ul>
+                <li><strong>Live Matches & Scorecards:</strong> Follow every ball, every run, and every wicket with our real-time updates.</li>
+                <li><strong>Ticket Booking:</strong> Secure your spot in the stands with our easy-to-use ticket booking system.</li>
+                <li><strong>Detailed Player Stats:</strong>Go beyond the averages with in-depth statistics on all your favorite players.</li>
+                <li><strong>Latest Cricket News:</strong> Stay informed with breaking news, match analysis, and exclusive insights.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock 'main' %}

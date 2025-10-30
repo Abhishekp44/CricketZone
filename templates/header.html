@@ -58,26 +58,46 @@
       <div class="container">
         <div class="d-flex align-items-center">
           <div class="site-logo">
-            <a href="index.html">
+            <a href="/home">
               <img src="{% static 'images/logo.png' %}" class="logo" alt="logo">
             </a>
           </div>
           <div class="ml-auto">
             <nav class="site-navigation position-relative text-right" role="navigation">
               <ul class="site-menu main-menu js-clone-nav mr-auto d-none d-lg-block">
-                <li class="active"><a href="/home" class="nav-link">Home</a></li>
-                <li><a href="/matches" class="nav-link">Matches</a></li>
-                <!-- <li><a href="/rankings" class="nav-link">Rankings</a></li> -->
-                <li><a href="/tickets" class="nav-link">Book Tickets</a></li>
+
+                <li class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                  <a href="{% url 'home' %}" class="nav-link">Home</a>
+                </li>
+
+                <li class="{% if request.resolver_match.url_name == 'matches' %}active{% endif %}">
+                  <a href="{% url 'matches' %}" class="nav-link">Matches</a>
+                </li>
+
+                <li class="{% if request.resolver_match.url_name == 'tickets' %}active{% endif %}">
+                  <a href="{% url 'tickets' %}" class="nav-link">Book Tickets</a>
+                </li>
+
                 {% if user.is_authenticated and user.is_superuser %}
-                <li><a href="/admin_dashboard" class="nav-link">Admin Dashboard</a></li>
+                <li class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                  <a href="{% url 'admin_dashboard' %}" class="nav-link">Admin Dashboard</a>
+                </li>
                 {% endif %}
+
                 {% if user.is_authenticated %}
-                <li><a href="/my-bookings" id="nav-link">My Tickets</a></li>
-                <li><a href="/logout" id="nav-link">Logout</a></li>
+                <li class="{% if request.resolver_match.url_name == 'my_bookings' %}active{% endif %}">
+                  <a href="{% url 'my_bookings' %}" id="nav-link">My Tickets</a>
+                </li>
+                <li>
+                  <a href="{% url 'logout' %}" id="nav-link">Logout</a>
+                </li>
                 {% else %}
-                <li><a href="/signup" id="nav-link">SignUp</a></li>
-                <li><a href="/login" id="nav-link">Login</a></li>
+                <li class="{% if request.resolver_match.url_name == 'signup' %}active{% endif %}">
+                  <a href="{% url 'signup' %}" id="nav-link">SignUp</a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+                  <a href="{% url 'login' %}" id="nav-link">Login</a>
+                </li>
                 {% endif %}
               </ul>
             </nav>

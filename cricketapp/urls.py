@@ -8,7 +8,9 @@ from django.contrib.auth import views as auth_views
 
 
 urlpatterns = [
-    path('home', views.home),
+    path('home', views.home, name='home'),
+    path('about/', views.about_us, name='about_us'),
+    path('news/<int:article_id>/', views.news_detail, name='news_detail'),
     path('admin_dashboard', views.admin_dashboard, name='admin_dashboard'),
     path('', views.home),
     path('scorecard_entry', views.scorecard_entry, name='scorecard_entry'),
@@ -30,7 +32,7 @@ urlpatterns = [
     # path('rankings',views.rankings),
     # path('contact',views.contact),
     # path('about',views.about),
-    path('login',views.user_login,name="user_login"),
+    path('login',views.user_login,name="login"),
     path('password_reset/', 
          auth_views.PasswordResetView.as_view(template_name="password_reset.html"), 
          name="password_reset"),
@@ -46,8 +48,8 @@ urlpatterns = [
     path('reset/done/', 
          auth_views.PasswordResetCompleteView.as_view(template_name="password_reset_complete.html"), 
          name="password_reset_complete"),
-    path('logout',views.user_logout),
-    path('signup',views.user_signup),
+    path('logout',views.user_logout,name='logout'),
+    path('signup',views.user_signup,name='signup'),
     path('book-ticket/<int:match_id>/', views.book_ticket, name='book_ticket'),
     path('my-bookings/', views.my_bookings, name='my_bookings'),
     path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),

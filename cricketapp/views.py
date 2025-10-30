@@ -116,7 +116,22 @@ class MatchSquadCreateAPIView(APIView):
 
 # Create your views here.
 def home(request):
-    return render(request, 'index.html')
+    latest_news = NewsArticle.objects.all()[:3]
+
+    
+    context = {
+        'articles': latest_news
+    }
+    return render(request, 'index.html',context)
+
+def news_detail(request, article_id):
+    article = get_object_or_404(NewsArticle, id=article_id)
+    
+    context = {
+        'article': article
+    }
+    return render(request, 'news_detail.html', context)
+
 
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
@@ -1131,5 +1146,10 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect('/home')
+
+
+def about_us(request):
+    # This will look for a template at 'cricket_app/about_us.html'
+    return render(request, 'about_us.html')
 
 

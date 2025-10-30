@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+<style>
+    .article-header {
+        padding: 2.5em 0;
+    }
+    p{
+        color: white !important;
+    }
+
+</style>
+<!-- Main Article Content -->
+<div class="site-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                
+                <!-- NEW: Simple Headline Section -->
+                <div class="mb-4 article-header">
+                    <h1 class="heading h2">{{ article.title }}</h1>
+                    <p style="color: #ee1e46 !important;">
+                        Published on: {{ article.date|date:"F d, Y" }}
+                    </p>
+                </div>
+                <!-- END: Simple Headline Section -->
+
+                <!-- Article Image -->
+                <img src="{{ article.image.url }}" alt="{{ article.title }}" class="img-fluid mb-4 w-100">
+                
+                <!-- Article Content -->
+                <!-- The 'linebreaks' filter respects paragraph breaks -->
+                <p>{{ article.content|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock 'main' %}
+

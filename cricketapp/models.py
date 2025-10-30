@@ -2,25 +2,19 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-class News(models.Model):
-    """
-    A simplified model to represent a single news article.
-    """
-    title = models.CharField(max_length=250, help_text="The headline of the news article.")
-    description = models.TextField(help_text="The main body/content of the news article.")
-    date = models.DateTimeField(default=timezone.now, help_text="The date and time of the article.")
-
-    # status: True means 'Published', False means 'Draft'
-    status = models.BooleanField(default=False, help_text="The publication status of the article. Checked means Published.")
-
-    class Meta:
-        verbose_name = "News Article"
-        verbose_name_plural = "News Articles"
-        # Order articles by most recent date by default
-        ordering = ['-date']
+class NewsArticle(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    date = models.DateField()
+    # Images will be uploaded to a 'news_images/' folder inside 'media/'
+    image = models.ImageField(upload_to='news_images/')
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        # This will make the newest articles appear first
+        ordering = ['-date']
 
 class Team(models.Model):
     # Define the choices for the team type
