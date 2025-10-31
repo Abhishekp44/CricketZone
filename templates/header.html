@@ -78,11 +78,6 @@
                   <a href="{% url 'tickets' %}" class="nav-link">Book Tickets</a>
                 </li>
 
-                {% if user.is_authenticated and user.is_superuser %}
-                <li class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                  <a href="{% url 'admin_dashboard' %}" class="nav-link">Admin Dashboard</a>
-                </li>
-                {% endif %}
 
                 {% if user.is_authenticated %}
                 

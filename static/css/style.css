@@ -1,3 +1,17 @@
+/* Custom breakpoint for tablets */
+@media (min-width: 992px) and (max-width: 1199px) {
+
+  /* Hide the full desktop menu */
+  .site-navbar .site-navigation .site-menu.d-lg-block {
+    display: none !important;
+  }
+
+  /* Show the mobile hamburger button */
+  .site-menu-toggle.d-lg-none {
+    display: inline-block !important;
+  }
+}
+
 /* Base */
 body {
   line-height: 1.7;
