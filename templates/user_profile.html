@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+
+
+<style>
+    
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid #222831;
+        margin-top: -60px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-tabs .nav-link {
+        color: #000000;
+        background-color: #fff;
+
+    }
+
+    .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link {
+        color: #ffffff;
+        background-color: #ee1e46;
+    }
+
+   
+
+    .booking-item {
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .booking-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .profile-container {
+        background-color: #1a1e25;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
+</style>
+
+<div class="site-section">
+    <div class="container">
+        <div class="row justify-content-center">
+
+            <div class="col-lg-10 col-xl-9 profile-container text-light" data-aos="fade-up">
+
+                <div class="p-4 p-md-5 text-center">
+
+                    <!-- Profile Avatar -->
+                    <img src="{% static 'images/avatar-default.svg' %}" alt="Profile Picture"
+                        class="profile-avatar mb-3" style="background-color: white;">
+
+
+                    <h4 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-white-opacity-05 mb-4">
+                        <i class="bi bi-envelope me-1"></i> {{ user.email }} |
+                        <!-- *** FIX: Changed user.date-joined to user.date_joined *** -->
+                        <i class="bi bi-calendar-check ms-2 me-1"></i> Joined: {{ user.date_joined|date:"F Y" }}
+                    </p>
+
+                    <!-- Edit Button -->
+                    <a href="{% url 'edit_profile' %}" class="btn btn-outline-light btn-sm mb-4">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Profile
+                    </a>
+
+                    <!-- Pill Navigation (Bootstrap 5) -->
+                    <ul class="nav nav-tabs justify-content-center profile-tabs mb-4" id="profileTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="details-tab" data-bs-toggle="tab"
+                                data-bs-target="#details" type="button" role="tab" aria-controls="details"
+                                aria-selected="true">
+                                <i class="bi bi-person-lines-fill me-1"></i> Account Details
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings"
+                                type="button" role="tab" aria-controls="bookings" aria-selected="false">
+                                <i class="bi bi-ticket-perforated-fill me-1"></i> My Bookings
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content text-start" id="profileTabsContent">
+
+                        <!-- Account Details Tab -->
+                        <div class="tab-pane fade show active" id="details" role="tabpanel"
+                            aria-labelledby="details-tab">
+
+                            <div class="table-responsive">
+                                <table class="custom-table w-100 m-0">
+                                    <tbody>
+                                        <tr>
+                                            <td class="py-3"><strong>Full Name</strong></td>
+                                            <td class="py-3">{{ user.get_full_name|default:"Not set" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-3"><strong>Username</strong></td>
+                                            <td class="py-3">{{ user.username }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-3"><strong>Email</strong></td>
+                                            <td class="py-3">{{ user.email }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-3"><strong>Joined On</strong></td>
+                                            <td class="py-3">{{ user.date_joined|date:"F d, Y" }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- My Bookings Tab -->
+                        <div class="tab-pane fade" id="bookings" role="tabpanel" aria-labelledby="bookings-tab">
+                            <h5 class="mb-4">My Ticket Bookings</h5>
+
+                            {% if user_bookings %}
+                            {% for booking in user_bookings %}
+
+                            <div
+                                class="d-flex justify-content-between align-items-center bg-light p-3 rounded mb-3 booking-item">
+                                <div class="me-auto">
+                                    <h6 class="text-white mb-1">{{ booking.match.match_name|default:"Match Details" }}</h6>
+                                    <!-- Using .text-white-opacity-05 from your style.css -->
+                                    <small class="text-white-opacity-05">Booked on: {{ booking.booking_time|date:"M d,Y" }}</small><br>
+                                    <small class="text-white-opacity-05">
+                                        <strong>Category:</strong> {{ booking.category.name }} |
+                                        <strong>Total:</strong> ₹{{ booking.total_price }}
+                                    </small>
+                                </div>
+                                <!-- Bootstrap 5 Badge -->
+                                <div class="d-flex flex-column align-items-end">
+                                <span class="badge bg-primary rounded-pill mb-2" style="font-size: 0.9rem;">
+                                    {{ booking.quantity }} Ticket(s)
+                                </span>
+                                <a href="{% url 'view_ticket' booking.id %}" class="btn btn-outline-light btn-sm">
+                                    View Ticket
+                                </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <!-- Bootstrap 5 Alert -->
+                            <div class="alert alert-info text-center" role="alert">
+                                You have not booked any tickets yet.
+                                <a href="{% url 'tickets' %}" class="alert-link">Why not book one now?</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+{% endblock 'main' %}

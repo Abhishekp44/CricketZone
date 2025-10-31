@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+  .profile-container {
+    background-color: #1a1e25; /* .bg-dark */
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    position: relative;
+    padding-top: 40px; /* Add padding since avatar is gone */
+  }
+
+  /* Your style.css .form-control will style the inputs */
+  .form-label {
+    color: #fff; /* Make labels white */
+  }
+</style>
+
+<div class="site-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-xl-9 profile-container text-light" data-aos="fade-up">
+        <div class="p-4 p-md-5">
+
+          <div class="text-center">
+            <h4 class="fw-bold mb-1">Edit Your Profile</h4>
+            <p class="text-white-opacity-05 mb-4">Update your personal information.</p>
+          </div>
+          
+          <form method="POST">
+            {% csrf_token %}
+            
+            <fieldset class="form-group">
+              <legend class="border-bottom pb-2 mb-3 text-white">Profile Info</legend>
+              
+              <!-- Render the UserUpdateForm -->
+              <div class="mb-3">
+                <label for="{{ u_form.username.id_for_label }}" class="form-label">Username</label>
+                {{ u_form.username }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ u_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                {{ u_form.first_name }}
+              </div>
+              <div class="mb-3">
+                <label for="{{ u_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                {{ u_form.last_name }}
+              </div>
+            </fieldset>
+
+            <div class="form-group text-center mt-5">
+              <button class="btn btn-primary" type="submit" style="background-color: #ee1e46; border-color: #ee1e46;">Save Changes</button>
+              <a href="{% url 'user_profile' %}" class="btn btn-outline-light ms-2">Cancel</a>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock 'main' %}
+

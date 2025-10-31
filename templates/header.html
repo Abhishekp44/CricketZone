@@ -58,7 +58,7 @@
       <div class="container">
         <div class="d-flex align-items-center">
           <div class="site-logo">
-            <a href="/home">
+            <a href="{% url 'home' %}">
               <img src="{% static 'images/logo.png' %}" class="logo" alt="logo">
             </a>
           </div>
@@ -85,6 +85,10 @@
                 {% endif %}
 
                 {% if user.is_authenticated %}
+                
+                <li class="{% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}">
+                  <a href="{% url 'user_profile' %}" class="nav-link">Profile</a>
+                </li>
                 <li class="{% if request.resolver_match.url_name == 'my_bookings' %}active{% endif %}">
                   <a href="{% url 'my_bookings' %}" id="nav-link">My Tickets</a>
                 </li>

@@ -11,6 +11,8 @@ urlpatterns = [
     path('home', views.home, name='home'),
     path('about/', views.about_us, name='about_us'),
     path('news/<int:article_id>/', views.news_detail, name='news_detail'),
+    path('profile/', views.user_profile, name='user_profile'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('admin_dashboard', views.admin_dashboard, name='admin_dashboard'),
     path('', views.home),
     path('scorecard_entry', views.scorecard_entry, name='scorecard_entry'),

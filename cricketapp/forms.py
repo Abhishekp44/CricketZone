@@ -19,6 +19,7 @@
 
 from django import forms
 from .models import TicketBooking, TicketCategory, MatchTicketAvailability
+from django.contrib.auth.models import User
 
 class BookingForm(forms.ModelForm):
     """
@@ -60,3 +61,26 @@ class BookingForm(forms.ModelForm):
             self.fields['category'].queryset = TicketCategory.objects.filter(
                 id__in=available_category_ids
             ).order_by('price')
+
+
+class UserUpdateForm(forms.ModelForm):
+    """
+    Form for updating User model fields.
+    We add the 'form-control' class from your style.css
+    to make the inputs match your dark theme.
+    """
+    username = forms.CharField(
+        max_length=100, 
+        widget=forms.TextInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(
+        max_length=100, 
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(
+        max_length=100, 
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name']

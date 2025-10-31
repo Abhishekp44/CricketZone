@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
 # from datetime import datetime
-from cricketapp.forms import BookingForm
+from cricketapp.forms import *
 from django.contrib import messages
 import razorpay
 
@@ -1151,5 +1151,41 @@ def user_logout(request):
 def about_us(request):
     # This will look for a template at 'cricket_app/about_us.html'
     return render(request, 'about_us.html')
+
+@login_required
+def user_profile(request):
+    # Fetch bookings for the currently logged-in user
+    try:
+        # Use your model 'TicketBooking' and field 'booking_time'
+        user_bookings = TicketBooking.objects.filter(user=request.user).order_by('-booking_time')
+    except:
+        user_bookings = None 
+
+    context = {
+        'user_bookings': user_bookings
+    }
+    return render(request, 'user_profile.html', context)
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        # Only initialize the UserUpdateForm
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        
+        if u_form.is_valid():
+            u_form.save()
+            messages.success(request, f'Your account has been updated!')
+            return redirect('user_profile') # Redirect back to the profile page
+
+    else:
+        # On GET, populate form with existing data
+        u_form = UserUpdateForm(instance=request.user)
+
+    context = {
+        'u_form': u_form,
+        # 'p_form' is removed
+    }
+
+    return render(request, 'edit_profile.html', context)
 
 
