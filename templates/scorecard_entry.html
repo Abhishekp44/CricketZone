@@ -653,6 +653,7 @@ function confirmWicket() {
 }
 
 function applyNewBatsman() {
+    saveState();
     const newBatsmanId = parseInt(document.getElementById('newBatsmanSelect').value);
     if (!newBatsmanId) return alert("Please select a new batsman.");
 
@@ -680,6 +681,7 @@ function applyNewBatsman() {
 }
 
 function applyNewBowler() {
+    saveState();
     const newBowlerId = parseInt(document.getElementById('newBowlerSelect').value);
     if (!newBowlerId) {
         closeModal('changeBowlerModal');

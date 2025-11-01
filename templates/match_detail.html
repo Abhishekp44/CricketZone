@@ -152,8 +152,8 @@
           <p class="text-center text-muted mb-1">
             <strong>Toss:</strong> {{ match.toss_winner.tname }} won the toss and chose to {{ match.toss_decision }}.
           </p>
-          <p class="text-center h5 mt-3 text-accent">
-            <strong>{{ match.result|default:"Match yet to begin" }}</strong>
+          <p class="text-center h5 mt-3 text-accent" id="main-match-result">
+              <strong>{{ match.result|default:"Match yet to begin" }}</strong>
           </p>
         </div>
       </div>
@@ -177,125 +177,127 @@
       <div class="tab-content p-3 rounded-bottom shadow-sm" id="matchTabContent">
         <!-- Scorecard Tab Pane -->
         <div class="tab-pane fade show active" id="scorecard" role="tabpanel" aria-labelledby="scorecard-tab">
-          {% for inning in innings %}
-          <div class="card border-light mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center py-3">
-              <h5 class="mb-0 d-flex align-items-center">
-                <img src="{% if inning.batting_team.timage %}{{ inning.batting_team.timage.url }}{% else %}https://placehold.co/80x80{% endif %}" alt="{{ inning.batting_team.tname }}" class="team-logo-header me-3">
-                {{ inning.batting_team.tname }}
-              </h5>
-              <h5 class="mb-0">
-                <strong class="text-light">{{ inning.total_runs }}/{{ inning.total_wickets }}</strong>
-                <span class="text-muted fw-normal"> ({{ inning.overs }} Ov)</span>
-              </h5>
-            </div>
-            <div class="card-body p-4">
-              <h6 class="mb-3 text-light">Batting</h6>
-              <div class="table-responsive">
-                <table class="table table-sm table-hover">
-                  <thead class="table-light">
-                    <tr>
-                      <th style="width: 30%;">BATSMAN</th>
-                      <th class="text-end">R</th>
-                      <th class="text-end">B</th>
-                      <th class="text-end">4s</th>
-                      <th class="text-end">6s</th>
-                      <th class="text-end">SR</th>
-                      <th>DISMISSAL</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for bs in inning.scores.all %}
-                    <tr>
-                      <td class="fw-bold text-accent">
-                          <a href="{% url 'player_detail' bs.player.pid %}" class="fw-bold text-accent text-decoration-none">
-                              {{ bs.player.pname }}
-                          </a>
-                      </td>
-                      <td class="text-end fw-bold text-light">{{ bs.runs }}</td>
-                      <td class="text-end">{{ bs.balls }}</td>
-                      <td class="text-end">{{ bs.fours }}</td>
-                      <td class="text-end">{{ bs.sixes }}</td>
-                      <td class="text-end">{{ bs.strike_rate }}</td>
-                      <td class="text-muted small">
-                        {% if bs.dismissal_type != 'Not Out' %}
-                          {{ bs.dismissal_type }}
-                          {% if bs.bowler %} b {{ bs.bowler.pname }}{% endif %}
-                          {% if bs.fielder %} c {{ bs.fielder.pname }}{% endif %}
-                        {% else %}
-                          <strong class="text-light">Not Out</strong>
-                        {% endif %}
-                      </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-3">Yet to bat.</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
+          <div id="scorecard-innings-wrapper">
+            {% for inning in innings %}
+            <div class="card border-light mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 d-flex align-items-center">
+                  <img src="{% if inning.batting_team.timage %}{{ inning.batting_team.timage.url }}{% else %}https://placehold.co/80x80{% endif %}" alt="{{ inning.batting_team.tname }}" class="team-logo-header me-3">
+                  {{ inning.batting_team.tname }}
+                </h5>
+                <h5 class="mb-0">
+                  <strong class="text-light">{{ inning.total_runs }}/{{ inning.total_wickets }}</strong>
+                  <span class="text-muted fw-normal"> ({{ inning.overs }} Ov)</span>
+                </h5>
               </div>
-
-              {% if inning.extras %}
-              <p class="mt-3 mb-4 small text-muted">
-                <strong>Extras:</strong> {{ inning.extras.total }} (B: {{ inning.extras.byes }}, LB: {{ inning.extras.leg_byes }}, W: {{ inning.extras.wides }}, NB: {{ inning.extras.no_balls }}, P: {{ inning.extras.penalty_runs }})
-              </p>
-              {% endif %}
-
-              <h6 class="mt-4 mb-3 text-light">Bowling</h6>
-              <div class="table-responsive">
-                <table class="table table-sm table-hover">
-                  <thead class="table-light">
-                    <tr>
-                      <th style="width: 30%;">BOWLER</th>
-                      <th class="text-end">O</th>
-                      <th class="text-end">M</th>
-                      <th class="text-end">R</th>
-                      <th class="text-end">W</th>
-                      <th class="text-end">NB</th>
-                      <th class="text-end">WD</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for bl in inning.bowlingscore_set.all %}
-                    <tr>
-                      <td class="fw-bold text-accent">
-                            <a href="{% url 'player_detail' bl.player.pid %}" class="fw-bold text-accent text-decoration-none">
-                                {{ bl.player.pname }}
-                            </a>
-                      </td>
-                      <td class="text-end">{{ bl.overs }}</td>
-                      <td class="text-end">{{ bl.maidens }}</td>
-                      <td class="text-end">{{ bl.runs_conceded }}</td>
-                      <td class="text-end fw-bold text-light">{{ bl.wickets }}</td>
-                      <td class="text-end">{{ bl.no_balls }}</td>
-                      <td class="text-end">{{ bl.wides }}</td>
-                    </tr>
-                    {% empty %}
+              <div class="card-body p-4">
+                <h6 class="mb-3 text-light">Batting</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover">
+                    <thead class="table-light">
                       <tr>
-                          <td colspan="7" class="text-center text-muted py-3">No bowlers yet.</td>
+                        <th style="width: 30%;">BATSMAN</th>
+                        <th class="text-end">R</th>
+                        <th class="text-end">B</th>
+                        <th class="text-end">4s</th>
+                        <th class="text-end">6s</th>
+                        <th class="text-end">SR</th>
+                        <th>DISMISSAL</th>
                       </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {% for bs in inning.scores.all %}
+                      <tr>
+                        <td class="fw-bold text-accent">
+                            <a href="{% url 'player_detail' bs.player.pid %}" class="fw-bold text-accent text-decoration-none">
+                                {{ bs.player.pname }}
+                            </a>
+                        </td>
+                        <td class="text-end fw-bold text-light">{{ bs.runs }}</td>
+                        <td class="text-end">{{ bs.balls }}</td>
+                        <td class="text-end">{{ bs.fours }}</td>
+                        <td class="text-end">{{ bs.sixes }}</td>
+                        <td class="text-end">{{ bs.strike_rate }}</td>
+                        <td class="text-muted small">
+                          {% if bs.dismissal_type != 'Not Out' %}
+                            {{ bs.dismissal_type }}
+                            {% if bs.bowler %} b {{ bs.bowler.pname }}{% endif %}
+                            {% if bs.fielder %} c {{ bs.fielder.pname }}{% endif %}
+                          {% else %}
+                            <strong class="text-light">Not Out</strong>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                          <td colspan="7" class="text-center text-muted py-3">Yet to bat.</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
 
-              <h6 class="mt-4 mb-3 text-light">Fall of Wickets</h6>
-              <ol class="list-unstyled small text-muted ps-3 fow-list">
-                {% for fow in inning.fallofwicket_set.all %}
-                  <li>
-                    <strong class="text-light">{{ fow.score_at_fall }}-{{ fow.wicket_number }}</strong>
-                    ({{ fow.player.pname }}, {{ fow.over }} ov)
-                  </li>
-                {% empty %}
-                  <li>No wickets have fallen.</li>
-                {% endfor %}
-              </ol>
+                {% if inning.extras %}
+                <p class="mt-3 mb-4 small text-muted">
+                  <strong>Extras:</strong> {{ inning.extras.total }} (B: {{ inning.extras.byes }}, LB: {{ inning.extras.leg_byes }}, W: {{ inning.extras.wides }}, NB: {{ inning.extras.no_balls }}, P: {{ inning.extras.penalty_runs }})
+                </p>
+                {% endif %}
+
+                <h6 class="mt-4 mb-3 text-light">Bowling</h6>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="width: 30%;">BOWLER</th>
+                        <th class="text-end">O</th>
+                        <th class="text-end">M</th>
+                        <th class="text-end">R</th>
+                        <th class="text-end">W</th>
+                        <th class="text-end">NB</th>
+                        <th class="text-end">WD</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for bl in inning.bowlingscore_set.all %}
+                      <tr>
+                        <td class="fw-bold text-accent">
+                              <a href="{% url 'player_detail' bl.player.pid %}" class="fw-bold text-accent text-decoration-none">
+                                  {{ bl.player.pname }}
+                              </a>
+                        </td>
+                        <td class="text-end">{{ bl.overs }}</td>
+                        <td class="text-end">{{ bl.maidens }}</td>
+                        <td class="text-end">{{ bl.runs_conceded }}</td>
+                        <td class="text-end fw-bold text-light">{{ bl.wickets }}</td>
+                        <td class="text-end">{{ bl.no_balls }}</td>
+                        <td class="text-end">{{ bl.wides }}</td>
+                      </tr>
+                      {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-3">No bowlers yet.</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+
+                <h6 class="mt-4 mb-3 text-light">Fall of Wickets</h6>
+                <ol class="list-unstyled small text-muted ps-3 fow-list">
+                  {% for fow in inning.fallofwicket_set.all %}
+                    <li>
+                      <strong class="text-light">{{ fow.score_at_fall }}-{{ fow.wicket_number }}</strong>
+                      ({{ fow.player.pname }}, {{ fow.over }} ov)
+                    </li>
+                  {% empty %}
+                    <li>No wickets have fallen.</li>
+                  {% endfor %}
+                </ol>
+              </div>
             </div>
+            {% empty %}
+              <p class="text-center text-muted p-4">Scorecard information is not available yet.</p>
+            {% endfor %}
           </div>
-          {% empty %}
-            <p class="text-center text-muted p-4">Scorecard information is not available yet.</p>
-          {% endfor %}
         </div>
 
         <!-- Squad Tab Pane -->
@@ -390,4 +392,194 @@
     </div>
   </div>
 </div>
+{% comment %} Add this script at the bottom of match_detail.html {% endcomment %}
+<script>
+    const matchId = {{ match.match_id }};
+    const isLive = {{ match.is_live|yesno:"true,false" }};
+    const scorecardWrapper = document.getElementById('scorecard-innings-wrapper');
+    const matchResultEl = document.getElementById('main-match-result');
+
+    // This function builds the HTML for a single batsman
+    function buildBatsmanRow(bs) {
+        let dismissal = `<strong class="text-light">Not Out</strong>`;
+        if (bs.dismissal_type !== 'Not Out') {
+            dismissal = `${bs.dismissal_type} `;
+            if (bs.bowler_name) dismissal += ` b ${bs.bowler_name}`;
+            if (bs.fielder_name) dismissal += ` c ${bs.fielder_name}`;
+        }
+
+        return `
+            <tr>
+                <td class="fw-bold text-accent">
+                    <a href="/player/${bs.player_id}/" class="fw-bold text-accent text-decoration-none">
+                        ${bs.player_name}
+                    </a>
+                </td>
+                <td class="text-end fw-bold text-light">${bs.runs}</td>
+                <td class="text-end">${bs.balls}</td>
+                <td class="text-end">${bs.fours}</td>
+                <td class="text-end">${bs.sixes}</td>
+                <td class="text-end">${bs.sr}</td>
+                <td class="text-muted small">${dismissal}</td>
+            </tr>
+        `;
+    }
+
+    // This function builds the HTML for a single bowler
+    function buildBowlerRow(bl) {
+        return `
+            <tr>
+                <td class="fw-bold text-accent">
+                    <a href="/player/${bl.player_id}/" class="fw-bold text-accent text-decoration-none">
+                        ${bl.player_name}
+                    </a>
+                </td>
+                <td class="text-end">${bl.overs}</td>
+                <td class="text-end">${bl.maidens}</td>
+                <td class="text-end">${bl.runs_conceded}</td>
+                <td class="text-end fw-bold text-light">${bl.wickets}</td>
+                <td class="text-end">${bl.no_balls}</td>
+                <td class="text-end">${bl.wides}</td>
+            </tr>
+        `;
+    }
+
+    // This function builds the HTML for the entire scorecard
+    function buildScorecardHtml(data) {
+        let allInningsHtml = '';
+
+        if (!data.innings || data.innings.length === 0) {
+            return '<p class="text-center text-muted p-4">Scorecard information is not available yet.</p>';
+        }
+
+        data.innings.forEach(inning => {
+            let battingTableHtml = inning.batting_scores.map(buildBatsmanRow).join('');
+            if (inning.batting_scores.length === 0) {
+                battingTableHtml = '<tr><td colspan="7" class="text-center text-muted py-3">Yet to bat.</td></tr>';
+            }
+
+            let bowlingTableHtml = inning.bowling_scores.map(buildBowlerRow).join('');
+            if (inning.bowling_scores.length === 0) {
+                bowlingTableHtml = '<tr><td colspan="7" class="text-center text-muted py-3">No bowlers yet.</td></tr>';
+            }
+
+            let fowHtml = inning.fow.map(fow => `
+                <li>
+                    <strong class="text-light">${fow.score_at_fall}-${fow.wicket_number}</strong>
+                    (${fow.player_name}, ${fow.over} ov)
+                </li>
+            `).join('');
+            if (inning.fow.length === 0) {
+                fowHtml = '<li>No wickets have fallen.</li>';
+            }
+
+            let extrasHtml = `
+                <p class="mt-3 mb-4 small text-muted">
+                    <strong>Extras:</strong> ${inning.extras.total} (B: ${inning.extras.byes}, LB: ${inning.extras.leg_byes}, W: ${inning.extras.wides}, NB: ${inning.extras.no_balls}, P: ${inning.extras.penalty_runs})
+                </p>
+            `;
+
+            let teamImageUrl = inning.batting_team_image || 'https://placehold.co/80x80';
+
+            allInningsHtml += `
+                <div class="card border-light mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <img src="${teamImageUrl}" alt="${inning.batting_team_name}" class="team-logo-header me-3">
+                            ${inning.batting_team_name}
+                        </h5>
+                        <h5 class="mb-0">
+                            <strong class="text-light">${inning.total_runs}/${inning.total_wickets}</strong>
+                            <span class="text-muted fw-normal"> (${inning.overs} Ov)</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <h6 class="mb-3 text-light">Batting</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 30%;">BATSMAN</th>
+                                        <th class="text-end">R</th> <th class="text-end">B</th> <th class="text-end">4s</th>
+                                        <th class="text-end">6s</th> <th class="text-end">SR</th> <th>DISMISSAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${battingTableHtml}</tbody>
+                            </table>
+                        </div>
+                        ${extrasHtml}
+                        <h6 class="mt-4 mb-3 text-light">Bowling</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 30%;">BOWLER</th>
+                                        <th class="text-end">O</th> <th class="text-end">M</th> <th class="text-end">R</th>
+                                        <th class="text-end">W</th> <th class="text-end">NB</th> <th class="text-end">WD</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${bowlingTableHtml}</tbody>
+                            </table>
+                        </div>
+                        <h6 class="mt-4 mb-3 text-light">Fall of Wickets</h6>
+                        <ol class="list-unstyled small text-muted ps-3 fow-list">
+                            ${fowHtml}
+                        </ol>
+                    </div>
+                </div>
+            `;
+        });
+        return allInningsHtml;
+    }
+
+    // This is the main function that fetches data
+    async function fetchLiveScore() {
+        try {
+            const response = await fetch(`/api/live-scorecard/${matchId}/`);
+            if (!response.ok) return; // Don't update if there's an error
+            
+            const data = await response.json();
+
+            // Update the main match result
+            if (matchResultEl) {
+                matchResultEl.innerHTML = `<strong>${data.result}</strong>`;
+            }
+
+            // Re-build the entire scorecard HTML
+            if (scorecardWrapper) {
+                scorecardWrapper.innerHTML = buildScorecardHtml(data);
+            }
+
+            // If match is no longer live, stop polling
+            if (data.is_completed || !data.is_live) {
+                stopPolling();
+            }
+
+        } catch (error) {
+            console.error('Error fetching live score:', error);
+        }
+    }
+
+    // --- Polling Logic ---
+    let pollingInterval;
+
+    function startPolling() {
+        // Fetch once immediately on page load
+        fetchLiveScore(); 
+        // Then fetch every 10 seconds
+        pollingInterval = setInterval(fetchLiveScore, 10000); 
+    }
+
+    function stopPolling() {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+        }
+    }
+
+    // Only start polling if the match is marked as live
+    if (isLive) {
+        startPolling();
+    }
+
+</script>
 {% endblock 'main' %}

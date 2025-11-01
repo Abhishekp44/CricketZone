@@ -261,8 +261,15 @@ def scorecard_entry(request):
 
         if "chktoss" in request.POST:
             mid = request.POST.get('match', '').strip()
+            toss_winner_id = request.POST.get('tossw', '').strip()
+            toss_decision = request.POST.get('tossd', '').strip()
             try:
                 match = Match.objects.get(match_id=int(mid))
+                if toss_winner_id and toss_decision:
+                    match.toss_winner_id = int(toss_winner_id)
+                    match.toss_decision = toss_decision
+                    match.is_live = True
+                    match.save()
                 team_players = MatchSquad.objects.filter(match=match, is_playing=True) \
                     .values_list('player__pid', 'player__pname', 'team__tid')
                 return JsonResponse(list(team_players), safe=False)
@@ -285,6 +292,30 @@ def scorecard_entry(request):
                         'overs': Decimal('0.0')
                     }
                 )
+
+                # --- NEW DELETION LOGIC FOR UNDO ---
+                # Get all player IDs that are supposed to be in this inning
+                
+                # 1. Get batsmen currently at the crease
+                current_batsman_ids = [b['id'] for b in state_data['batsmen']]
+                # 2. Get batsmen who are already out
+                current_batsman_ids.extend(state_data.get('outBatsmenIds', []))
+                
+                # 3. Get all bowlers who have bowled
+                current_bowler_ids = [int(bid) for bid in state_data['bowlingFigures'].keys()]
+
+                # Delete any BattingScore records for this inning whose
+                # player is NOT in the current state.
+                BattingScore.objects.filter(inning=inning).exclude(
+                    player_id__in=set(current_batsman_ids)
+                ).delete()
+                
+                # Delete any BowlingScore records for this inning whose
+                # player is NOT in the current state.
+                BowlingScore.objects.filter(inning=inning).exclude(
+                    player_id__in=set(current_bowler_ids)
+                ).delete()
+                # --- END OF NEW DELETION LOGIC ---
 
                 # 1. Update Inning object
                 inning.total_runs = state_data['inning']['runs']
@@ -382,6 +413,154 @@ def scorecard_entry(request):
     return render(request, 'scorecard_entry.html', {'matches': matches, 'dismissal_choices': BattingScore.DISMISSAL_CHOICES, })
 
 
+
+def get_live_scorecard_json(request, match_id):
+    """
+    This API view fetches the full, live scorecard data for a match
+    and returns it as JSON for the AJAX polling.
+    """
+    try:
+        # Get the main match object
+        match = get_object_or_404(Match, match_id=match_id)
+
+        # Use prefetch_related for an efficient query, just like in your match_detail view
+        innings_qs = Inning.objects.filter(match=match).prefetch_related(
+            'scores__player',
+            'scores__bowler',
+            'scores__fielder',
+            'bowlingscore_set__player',
+            'fallofwicket_set__player',
+            'extras'
+        ).order_by('number')
+
+        # --- Build the JSON Response ---
+        
+        data = {
+            'match_id': match.match_id,
+            'is_live': match.is_live,
+            'is_completed': match.is_completed,
+            'result': match.result or ("Match in progress" if match.is_live else "Upcoming"),
+            'innings': []
+        }
+
+        for inning in innings_qs:
+            inning_data = {
+                'number': inning.number,
+                'batting_team_name': inning.batting_team.tname,
+                'batting_team_image': inning.batting_team.timage.url if inning.batting_team.timage else None,
+                'total_runs': inning.total_runs,
+                'total_wickets': inning.total_wickets,
+                'overs': f"{inning.overs}", # Convert Decimal to string
+                'batting_scores': [],
+                'bowling_scores': [],
+                'fow': [],
+                'extras': {}
+            }
+            
+            # 1. Batting Scores
+            for bs in inning.scores.all():
+                inning_data['batting_scores'].append({
+                    'player_name': bs.player.pname,
+                    'player_id': bs.player.pid,
+                    'runs': bs.runs,
+                    'balls': bs.balls,
+                    'fours': bs.fours,
+                    'sixes': bs.sixes,
+                    'sr': f"{bs.strike_rate}",
+                    'dismissal_type': bs.dismissal_type,
+                    'bowler_name': bs.bowler.pname if bs.bowler else None,
+                    'fielder_name': bs.fielder.pname if bs.fielder else None,
+                })
+
+            # 2. Bowling Scores
+            for bl in inning.bowlingscore_set.all():
+                inning_data['bowling_scores'].append({
+                    'player_name': bl.player.pname,
+                    'player_id': bl.player.pid,
+                    'overs': f"{bl.overs}",
+                    'maidens': bl.maidens,
+                    'runs_conceded': bl.runs_conceded,
+                    'wickets': bl.wickets,
+                    'no_balls': bl.no_balls,
+                    'wides': bl.wides,
+                })
+                
+            # 3. Fall of Wickets
+            for fow in inning.fallofwicket_set.all():
+                inning_data['fow'].append({
+                    'score_at_fall': fow.score_at_fall,
+                    'wicket_number': fow.wicket_number,
+                    'player_name': fow.player.pname,
+                    'over': f"{fow.over}",
+                })
+
+            # 4. Extras
+            try:
+                extras_obj = inning.extras
+                inning_data['extras'] = {
+                    'total': extras_obj.total(),
+                    'byes': extras_obj.byes,
+                    'leg_byes': extras_obj.leg_byes,
+                    'wides': extras_obj.wides,
+                    'no_balls': extras_obj.no_balls,
+                    'penalty_runs': extras_obj.penalty_runs,
+                }
+            except Extras.DoesNotExist:
+                 inning_data['extras'] = {'total': 0, 'byes': 0, 'leg_byes': 0, 'wides': 0, 'no_balls': 0, 'penalty_runs': 0}
+
+            data['innings'].append(inning_data)
+            
+        return JsonResponse(data)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+# In views.py, add this new function
+
+def get_all_live_scores_json(request):
+    """
+    Returns a simple JSON object of all live or recently completed matches.
+    """
+    # Get all matches that are live OR were completed
+    live_matches = Match.objects.filter(is_live=True, is_completed=False)
+    completed_matches = Match.objects.filter(is_completed=True)
+    
+    data_to_return = {}
+
+    # Process LIVE matches
+    for match in live_matches:
+        # Get innings for this match
+        all_innings = Inning.objects.filter(match=match).order_by('number')
+        
+        t1_inn = all_innings.filter(batting_team=match.team1).first()
+        t2_inn = all_innings.filter(batting_team=match.team2).first()
+
+        data_to_return[match.match_id] = {
+            'is_completed': False,
+            'result': 'LIVE',
+            't1_id': match.team1_id,
+            't1_score': t1_inn.total_runs if t1_inn else 0,
+            't1_wickets': t1_inn.total_wickets if t1_inn else 0,
+            't1_overs': f"{t1_inn.overs}" if t1_inn else "0.0",
+            't2_id': match.team2_id,
+            't2_score': t2_inn.total_runs if t2_inn else 0,
+            't2_wickets': t2_inn.total_wickets if t2_inn else 0,
+            't2_overs': f"{t2_inn.overs}" if t2_inn else "0.0",
+        }
+        
+        # If match is live but no innings yet, it means toss is done
+        if not t1_inn and not t2_inn:
+             data_to_return[match.match_id]['result'] = 'Toss Done'
+
+    # Process COMPLETED matches
+    for match in completed_matches:
+        # This will add or overwrite the match data with the final result
+        data_to_return[match.match_id] = {
+            'is_completed': True,
+            'result': match.result,
+        }
+
+    return JsonResponse(data_to_return)
 
 def matches_view(request):
     start_date = request.GET.get('start_date')

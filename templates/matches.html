@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block 'main' %}
+{% load match_extras %}
 
 <style>
   /* [Your existing styles here] */
@@ -84,13 +85,30 @@
                         <div class="d-flex justify-content-between py-1">
                             <strong>{{ team.tname }}</strong>
                             {% with inning=innings|get_inning_for_team:team %}
-                            {% if inning %}<span>{{ inning.total_runs }}/{{ inning.total_wickets }} ({{ inning.overs }} ov)</span>
-                            {% else %}<span>-</span>{% endif %}
-                            {% endwith %}
+                            
+                                {% if inning %}
+                                <span id="score-{{ match.match_id }}-{{ team.tid }}">
+                                    {{ inning.total_runs }}/{{ inning.total_wickets }} ({{ inning.overs }} ov)
+                                </span>
+                                {% else %}
+                                <span id="score-{{ match.match_id }}-{{ team.tid }}">-</span>
+                                {% endif %}
+                                {% endwith %}
                         </div>
                         {% endfor %}
                     {% endwith %}
-                    <div class="text-center mt-2"><strong>{{ match.result|default:"Upcoming" }}</strong></div>
+                    
+                    <div class="text-center mt-2">
+                        <strong id="result-{{ match.match_id }}">
+                            {% if match.is_completed %}
+                                {{ match.result }}
+                            {% elif match.is_live %}
+                                <span style="color: #ee1e46; font-weight: bold;">LIVE</span>
+                            {% else %}
+                                Upcoming
+                            {% endif %}
+                        </strong>
+                        </div>
                 </div>
                 <div class="col-md-4 d-flex align-items-center justify-content-center">
                     <a href="{% url 'match_detail' match.match_id %}" class="btn btn-primary btn-sm">Match Details</a>
@@ -204,6 +222,59 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+});
+
+async function fetchAllLiveScores() {
+    try {
+        const response = await fetch('/api/live-scores-list/');
+        if (!response.ok) return;
+
+        const data = await response.json();
+        
+        // Loop through the data. The key is the match_id
+        for (const matchId in data) {
+            if (!data.hasOwnProperty(matchId)) continue;
+            
+            const matchData = data[matchId];
+            
+            // 1. Update Result/Status
+            const resultEl = document.getElementById(`result-${matchId}`);
+            if (resultEl) {
+                if (matchData.is_completed) {
+                    resultEl.textContent = matchData.result;
+                    resultEl.style.color = ""; // Reset color
+                } else if (matchData.result === "LIVE") {
+                    resultEl.innerHTML = `<span style="color: #ee1e46; font-weight: bold;">LIVE</span>`;
+                } else if (matchData.result === "Toss Done") {
+                    resultEl.innerHTML = `<span style="color: #1ccec9;">Toss Done</span>`;
+                }
+            }
+
+            // 2. Update Scores (if the data is for a live score)
+            if (matchData.result === "LIVE") {
+                // Team 1
+                const scoreEl1 = document.getElementById(`score-${matchId}-${matchData.t1_id}`);
+                if (scoreEl1 && (matchData.t1_score > 0 || matchData.t1_overs !== "0.0")) {
+                    scoreEl1.textContent = `${matchData.t1_score}/${matchData.t1_wickets} (${matchData.t1_overs} ov)`;
+                }
+                
+                // Team 2
+                const scoreEl2 = document.getElementById(`score-${matchId}-${matchData.t2_id}`);
+                if (scoreEl2 && (matchData.t2_score > 0 || matchData.t2_overs !== "0.0")) {
+                    scoreEl2.textContent = `${matchData.t2_score}/${matchData.t2_wickets} (${matchData.t2_overs} ov)`;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching all live scores:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch once right away
+    fetchAllLiveScores();
+    // Then fetch every 15 seconds
+    setInterval(fetchAllLiveScores, 10000); 
 });
 </script>
 
