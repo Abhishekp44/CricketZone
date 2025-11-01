@@ -282,6 +282,20 @@ def scorecard_entry(request):
 
             try:
                 match = Match.objects.get(match_id=match_id)
+                try:
+                    # Find the striker and non-striker from the state
+                    striker_data = next(b for b in state_data['batsmen'] if b['onStrike'])
+                    non_striker_data = next(b for b in state_data['batsmen'] if not b['onStrike'])
+                    bowler_data = state_data['bowler']
+                    
+                    match.current_striker_id = striker_data['id']
+                    match.current_non_striker_id = non_striker_data['id']
+                    match.current_bowler_id = bowler_data['id']
+                except (StopIteration, KeyError):
+                    # This might fail if state is weird, so we clear them
+                    match.current_striker = None
+                    match.current_non_striker = None
+                    match.current_bowler = None
 
                 # FIX: Added 'overs' to defaults and use dynamic inning number
                 inning, _ = Inning.objects.get_or_create(
@@ -314,6 +328,13 @@ def scorecard_entry(request):
                 # player is NOT in the current state.
                 BowlingScore.objects.filter(inning=inning).exclude(
                     player_id__in=set(current_bowler_ids)
+                ).delete()
+
+                # 3. Delete orphaned FallOfWicket entries
+                current_wicket_count = state_data['inning']['wickets']
+                FallOfWicket.objects.filter(
+                    inning=inning,
+                    wicket_number__gt=current_wicket_count
                 ).delete()
                 # --- END OF NEW DELETION LOGIC ---
 
@@ -398,6 +419,18 @@ def scorecard_entry(request):
                 if state_data.get('gameOver'):
                     match.is_completed = True
                     match.is_live = False
+                    match.current_striker = None
+                    match.current_non_striker = None
+                    match.current_bowler = None
+                    match.save() 
+                
+                elif state_data.get('inning_completed'):
+                    match.current_striker = None
+                    match.current_non_striker = None
+                    match.current_bowler = None
+                    match.save() 
+
+                else:
                     match.save()
 
                 return JsonResponse({"status": "success", "message": "Data saved"})
@@ -440,8 +473,42 @@ def get_live_scorecard_json(request, match_id):
             'is_live': match.is_live,
             'is_completed': match.is_completed,
             'result': match.result or ("Match in progress" if match.is_live else "Upcoming"),
+            'live_players': {
+                'striker': None,
+                'non_striker': None,
+                'bowler': None
+            },
             'innings': []
         }
+
+        current_inning = innings_qs.last() 
+        
+        if current_inning and match.is_live:
+            striker_score = current_inning.scores.filter(player=match.current_striker).first()
+            non_striker_score = current_inning.scores.filter(player=match.current_non_striker).first()
+            bowler_score = current_inning.bowlingscore_set.filter(player=match.current_bowler).first()
+
+            if match.current_striker and striker_score:
+                data['live_players']['striker'] = {
+                    'name': match.current_striker.pname,
+                    'runs': striker_score.runs,
+                    'balls': striker_score.balls
+                }
+            
+            if match.current_non_striker and non_striker_score:
+                data['live_players']['non_striker'] = {
+                    'name': match.current_non_striker.pname,
+                    'runs': non_striker_score.runs,
+                    'balls': non_striker_score.balls
+                }
+            
+            if match.current_bowler:
+                data['live_players']['bowler'] = {
+                    'name': match.current_bowler.pname,
+                    'overs': f"{bowler_score.overs}" if bowler_score else "0.0",
+                    'runs': bowler_score.runs_conceded if bowler_score else 0,
+                    'wickets': bowler_score.wickets if bowler_score else 0
+                }
 
         for inning in innings_qs:
             inning_data = {

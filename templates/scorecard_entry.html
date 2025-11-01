@@ -573,12 +573,13 @@ function handleRun(runs) {
     if (runs === 6) striker.sixes++;
 
     state.thisOver.push({ display: runs, class: runs === 4 ? 'run-4' : runs === 6 ? 'run-6' : runs > 0 ? 'run' : 'dot'});
+
+    advanceBall();
     
     if (runs % 2 !== 0) {
         swapStrike();
     }
     
-    advanceBall();
     updateUI();
     saveStateToBackend();
 }

@@ -207,6 +207,27 @@ class Match(models.Model):
     is_active = models.BooleanField(default=False)
     is_live = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
+    current_striker = models.ForeignKey(
+        Player, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='striker_matches'
+    )
+    current_non_striker = models.ForeignKey(
+        Player, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='non_striker_matches'
+    )
+    current_bowler = models.ForeignKey(
+        Player, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='bowler_matches'
+    )
 
     def __str__(self):
         format_display = self.get_format_display() if self.format else "Match"

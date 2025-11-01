@@ -10,6 +10,7 @@
       opacity: 0;
       transform: translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -26,9 +27,11 @@
   }
 
   .card {
-    background-color: #262930; /* Cleaner solid background color */
+    background-color: #262930;
+    /* Cleaner solid background color */
     border: 1px solid #4a4f56;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* Softer shadow */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /* Softer shadow */
     width: 100% !important;
   }
 
@@ -53,6 +56,7 @@
   .nav-tabs {
     border-bottom: 1px solid #4a4f56;
   }
+
   .nav-tabs .nav-link {
     color: #adb5bd;
     border: 1px solid transparent;
@@ -60,9 +64,11 @@
     padding: 0.75rem 1.25rem;
     transition: all 0.2s ease-in-out;
   }
+
   .nav-tabs .nav-link:hover {
     color: #00ADB5;
   }
+
   .nav-tabs .nav-link.active {
     color: #00ADB5;
     background-color: #393E46;
@@ -71,20 +77,26 @@
   }
 
   .tab-content {
-      background-color: #393E46;
+    background-color: #393E46;
   }
 
   /* Table styling for dark theme */
   .table {
     color: #EEEEEE;
   }
+
   .table-hover tbody tr {
-    transition: background-color 0.2s ease-in-out; /* Removed transform transition */
+    transition: background-color 0.2s ease-in-out;
+    /* Removed transform transition */
   }
+
   .table-hover tbody tr:hover {
-    background-color: #4a4f56; /* A better hover color without scaling */
+    background-color: #4a4f56;
+    /* A better hover color without scaling */
   }
-  .table .thead-dark th, .table thead.table-light th {
+
+  .table .thead-dark th,
+  .table thead.table-light th {
     background-color: #2d343c;
     color: #EEEEEE;
     border-color: #4a4f56;
@@ -93,36 +105,85 @@
 
   /* List group for squads */
   .list-group-item {
-      background-color: transparent;
-      border-color: #4a4f56;
-      transition: background-color 0.2s ease-in-out;
+    background-color: transparent;
+    border-color: #4a4f56;
+    transition: background-color 0.2s ease-in-out;
   }
+
   .list-group-item:hover {
-      background-color: #4a4f56;
+    background-color: #4a4f56;
   }
 
   .team-logo-header {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    object-fit: contain; /* Changed from 'cover' to 'contain' to ensure full image is visible */
+    object-fit: contain;
+    /* Changed from 'cover' to 'contain' to ensure full image is visible */
     border: 2px solid #4a4f56;
-    background-color: #2d343c; /* Added a background color for non-square images */
+    background-color: #2d343c;
+    /* Added a background color for non-square images */
   }
+
   .player-image-list {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    object-fit: contain; /* Changed from 'cover' to 'contain' to ensure full image is visible */
-    background-color: #2d343c; /* Added a background color for non-square images */
+    object-fit: contain;
+    /* Changed from 'cover' to 'contain' to ensure full image is visible */
+    background-color: #2d343c;
+    /* Added a background color for non-square images */
   }
 
   .fow-list li {
     padding: 8px 0;
     border-bottom: 1px dashed #4a4f56;
   }
+
   .fow-list li:last-child {
     border-bottom: none;
+  }
+
+
+
+
+  .live-player-bar {
+    display: none;
+    background-color: #393E46;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #EEEEEE;
+    animation: fadeIn 0.5s;
+  }
+
+  .live-player {
+    font-size: 1.1rem;
+  }
+
+  .live-player .player-name {
+    font-weight: 700;
+    display: inline-block;
+  }
+
+  .live-player .player-stats {
+    font-size: 1.0rem;
+    color: #adb5bd;
+  }
+
+  .on-strike-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #ee1e46;
+    border-radius: 50%;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .live-player-divider {
+    border-left: 1px solid #4a4f56;
+    height: 60px;
   }
 </style>
 
@@ -134,14 +195,18 @@
         <div class="card-body p-4">
           <div class="row align-items-center text-center">
             <div class="col-5">
-              <img src="{% if match.team1.timage %}{{ match.team1.timage.url }}{% else %}https://placehold.co/100x100/EBF4FF/76A9FA?text=T1{% endif %}" class="team-logo-header mb-2" alt="{{ match.team1.tname }}">
+              <img
+                src="{% if match.team1.timage %}{{ match.team1.timage.url }}{% else %}https://placehold.co/100x100/EBF4FF/76A9FA?text=T1{% endif %}"
+                class="team-logo-header mb-2" alt="{{ match.team1.tname }}">
               <h4 class="mb-0">{{ match.team1.tname }}</h4>
             </div>
             <div class="col-2">
               <h3 class="mb-0 text-muted">VS</h3>
             </div>
             <div class="col-5">
-              <img src="{% if match.team2.timage %}{{ match.team2.timage.url }}{% else %}https://placehold.co/100x100/FFF0F0/FA7676?text=T2{% endif %}" class="team-logo-header mb-2" alt="{{ match.team2.tname }}">
+              <img
+                src="{% if match.team2.timage %}{{ match.team2.timage.url }}{% else %}https://placehold.co/100x100/FFF0F0/FA7676?text=T2{% endif %}"
+                class="team-logo-header mb-2" alt="{{ match.team2.tname }}">
               <h4 class="mb-0">{{ match.team2.tname }}</h4>
             </div>
           </div>
@@ -153,23 +218,45 @@
             <strong>Toss:</strong> {{ match.toss_winner.tname }} won the toss and chose to {{ match.toss_decision }}.
           </p>
           <p class="text-center h5 mt-3 text-accent" id="main-match-result">
-              <strong>{{ match.result|default:"Match yet to begin" }}</strong>
+            <strong>{{ match.result|default:"Match yet to begin" }}</strong>
           </p>
+        </div>
+      </div>
+
+      <div id="live-player-bar" class="live-player-bar">
+        <div class="row align-items-center">
+
+          <div class="col-12 col-md-5">
+            <div class="live-player mb-2 text-center text-md-start" id="live-striker"></div>
+            <div class="live-player text-center text-md-start" id="live-non-striker"></div>
+          </div>
+
+          <div class="col-md-2 text-center d-none d-md-block">
+            <div class="live-player-divider mx-auto"></div>
+          </div>
+
+          <div class="col-12 col-md-5 mt-3 mt-md-0" id="live-bowler">
+            <div class="live-player text-center text-md-start" id="live-bowler-content"></div>
+          </div>
+
         </div>
       </div>
 
       <!-- Tabs for Scorecard, Squads, and Standings -->
       <ul class="nav nav-tabs mt-4" id="matchTabs" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="scorecard-tab" data-bs-toggle="tab" data-bs-target="#scorecard" type="button" role="tab" aria-controls="scorecard" aria-selected="true">Scorecard</button>
+          <button class="nav-link active" id="scorecard-tab" data-bs-toggle="tab" data-bs-target="#scorecard"
+            type="button" role="tab" aria-controls="scorecard" aria-selected="true">Scorecard</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="squad-tab" data-bs-toggle="tab" data-bs-target="#squad" type="button" role="tab" aria-controls="squad" aria-selected="false">Squads</button>
+          <button class="nav-link" id="squad-tab" data-bs-toggle="tab" data-bs-target="#squad" type="button" role="tab"
+            aria-controls="squad" aria-selected="false">Squads</button>
         </li>
         <!-- NEW: Standings Tab Link -->
         {% if standings %}
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="standings-tab" data-bs-toggle="tab" data-bs-target="#standings" type="button" role="tab" aria-controls="standings" aria-selected="false">Standings</button>
+          <button class="nav-link" id="standings-tab" data-bs-toggle="tab" data-bs-target="#standings" type="button"
+            role="tab" aria-controls="standings" aria-selected="false">Standings</button>
         </li>
         {% endif %}
       </ul>
@@ -182,7 +269,9 @@
             <div class="card border-light mb-4">
               <div class="card-header d-flex justify-content-between align-items-center py-3">
                 <h5 class="mb-0 d-flex align-items-center">
-                  <img src="{% if inning.batting_team.timage %}{{ inning.batting_team.timage.url }}{% else %}https://placehold.co/80x80{% endif %}" alt="{{ inning.batting_team.tname }}" class="team-logo-header me-3">
+                  <img
+                    src="{% if inning.batting_team.timage %}{{ inning.batting_team.timage.url }}{% else %}https://placehold.co/80x80{% endif %}"
+                    alt="{{ inning.batting_team.tname }}" class="team-logo-header me-3">
                   {{ inning.batting_team.tname }}
                 </h5>
                 <h5 class="mb-0">
@@ -209,9 +298,10 @@
                       {% for bs in inning.scores.all %}
                       <tr>
                         <td class="fw-bold text-accent">
-                            <a href="{% url 'player_detail' bs.player.pid %}" class="fw-bold text-accent text-decoration-none">
-                                {{ bs.player.pname }}
-                            </a>
+                          <a href="{% url 'player_detail' bs.player.pid %}"
+                            class="fw-bold text-accent text-decoration-none">
+                            {{ bs.player.pname }}
+                          </a>
                         </td>
                         <td class="text-end fw-bold text-light">{{ bs.runs }}</td>
                         <td class="text-end">{{ bs.balls }}</td>
@@ -220,17 +310,17 @@
                         <td class="text-end">{{ bs.strike_rate }}</td>
                         <td class="text-muted small">
                           {% if bs.dismissal_type != 'Not Out' %}
-                            {{ bs.dismissal_type }}
-                            {% if bs.bowler %} b {{ bs.bowler.pname }}{% endif %}
-                            {% if bs.fielder %} c {{ bs.fielder.pname }}{% endif %}
+                          {{ bs.dismissal_type }}
+                          {% if bs.bowler %} b {{ bs.bowler.pname }}{% endif %}
+                          {% if bs.fielder %} c {{ bs.fielder.pname }}{% endif %}
                           {% else %}
-                            <strong class="text-light">Not Out</strong>
+                          <strong class="text-light">Not Out</strong>
                           {% endif %}
                         </td>
                       </tr>
                       {% empty %}
                       <tr>
-                          <td colspan="7" class="text-center text-muted py-3">Yet to bat.</td>
+                        <td colspan="7" class="text-center text-muted py-3">Yet to bat.</td>
                       </tr>
                       {% endfor %}
                     </tbody>
@@ -239,7 +329,9 @@
 
                 {% if inning.extras %}
                 <p class="mt-3 mb-4 small text-muted">
-                  <strong>Extras:</strong> {{ inning.extras.total }} (B: {{ inning.extras.byes }}, LB: {{ inning.extras.leg_byes }}, W: {{ inning.extras.wides }}, NB: {{ inning.extras.no_balls }}, P: {{ inning.extras.penalty_runs }})
+                  <strong>Extras:</strong> {{ inning.extras.total }} (B: {{ inning.extras.byes }}, LB: {{
+                  inning.extras.leg_byes }}, W: {{ inning.extras.wides }}, NB: {{ inning.extras.no_balls }}, P: {{
+                  inning.extras.penalty_runs }})
                 </p>
                 {% endif %}
 
@@ -261,9 +353,10 @@
                       {% for bl in inning.bowlingscore_set.all %}
                       <tr>
                         <td class="fw-bold text-accent">
-                              <a href="{% url 'player_detail' bl.player.pid %}" class="fw-bold text-accent text-decoration-none">
-                                  {{ bl.player.pname }}
-                              </a>
+                          <a href="{% url 'player_detail' bl.player.pid %}"
+                            class="fw-bold text-accent text-decoration-none">
+                            {{ bl.player.pname }}
+                          </a>
                         </td>
                         <td class="text-end">{{ bl.overs }}</td>
                         <td class="text-end">{{ bl.maidens }}</td>
@@ -273,9 +366,9 @@
                         <td class="text-end">{{ bl.wides }}</td>
                       </tr>
                       {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-3">No bowlers yet.</td>
-                        </tr>
+                      <tr>
+                        <td colspan="7" class="text-center text-muted py-3">No bowlers yet.</td>
+                      </tr>
                       {% endfor %}
                     </tbody>
                   </table>
@@ -284,18 +377,18 @@
                 <h6 class="mt-4 mb-3 text-light">Fall of Wickets</h6>
                 <ol class="list-unstyled small text-muted ps-3 fow-list">
                   {% for fow in inning.fallofwicket_set.all %}
-                    <li>
-                      <strong class="text-light">{{ fow.score_at_fall }}-{{ fow.wicket_number }}</strong>
-                      ({{ fow.player.pname }}, {{ fow.over }} ov)
-                    </li>
+                  <li>
+                    <strong class="text-light">{{ fow.score_at_fall }}-{{ fow.wicket_number }}</strong>
+                    ({{ fow.player.pname }}, {{ fow.over }} ov)
+                  </li>
                   {% empty %}
-                    <li>No wickets have fallen.</li>
+                  <li>No wickets have fallen.</li>
                   {% endfor %}
                 </ol>
               </div>
             </div>
             {% empty %}
-              <p class="text-center text-muted p-4">Scorecard information is not available yet.</p>
+            <p class="text-center text-muted p-4">Scorecard information is not available yet.</p>
             {% endfor %}
           </div>
         </div>
@@ -308,7 +401,9 @@
               <ul class="list-group list-group-flush">
                 {% for ps in squads|get_item:match.team1.tid %}
                 <li class="list-group-item d-flex align-items-center">
-                  <img src="{% if ps.player.pimage %}{{ ps.player.pimage.url }}{% else %}https://placehold.co/60x60/EBF4FF/76A9FA?text=P{% endif %}" alt="{{ ps.player.pname }}" class="player-image-list me-3">
+                  <img
+                    src="{% if ps.player.pimage %}{{ ps.player.pimage.url }}{% else %}https://placehold.co/60x60/EBF4FF/76A9FA?text=P{% endif %}"
+                    alt="{{ ps.player.pname }}" class="player-image-list me-3">
                   <div>
                     <a href="{% url 'player_detail' ps.player.pid %}" class="text-light text-decoration-none">
                       <strong>{{ ps.player.pname }}</strong>
@@ -319,7 +414,7 @@
                   {% if not ps.is_playing %}<span class="badge bg-secondary ms-auto">Substitute</span>{% endif %}
                 </li>
                 {% empty %}
-                 <li class="list-group-item text-muted">Squad not available.</li>
+                <li class="list-group-item text-muted">Squad not available.</li>
                 {% endfor %}
               </ul>
             </div>
@@ -328,7 +423,9 @@
               <ul class="list-group list-group-flush">
                 {% for ps in squads|get_item:match.team2.tid %}
                 <li class="list-group-item d-flex align-items-center">
-                  <img src="{% if ps.player.pimage %}{{ ps.player.pimage.url }}{% else %}https://placehold.co/60x60/FFF0F0/FA7676?text=P{% endif %}" alt="{{ ps.player.pname }}" class="player-image-list me-3">
+                  <img
+                    src="{% if ps.player.pimage %}{{ ps.player.pimage.url }}{% else %}https://placehold.co/60x60/FFF0F0/FA7676?text=P{% endif %}"
+                    alt="{{ ps.player.pname }}" class="player-image-list me-3">
                   <div>
                     <a href="{% url 'player_detail' ps.player.pid %}" class="text-light text-decoration-none">
                       <strong>{{ ps.player.pname }}</strong>
@@ -339,7 +436,7 @@
                   {% if not ps.is_playing %}<span class="badge bg-secondary ms-auto">Substitute</span>{% endif %}
                 </li>
                 {% empty %}
-                 <li class="list-group-item text-muted">Squad not available.</li>
+                <li class="list-group-item text-muted">Squad not available.</li>
                 {% endfor %}
               </ul>
             </div>
@@ -349,42 +446,44 @@
         <!-- NEW: Standings Tab Pane -->
         {% if standings %}
         <div class="tab-pane fade" id="standings" role="tabpanel" aria-labelledby="standings-tab">
-            <div class="table-responsive mt-3">
-                <h5 class="text-light mb-3">{{ match.tournament.name }} Standings</h5>
-                <table class="table table-sm table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 40%;">TEAM</th>
-                            <th class="text-end">P</th>
-                            <th class="text-end">W</th>
-                            <th class="text-end">L</th>
-                            <th class="text-end">NR</th>
-                            <th class="text-end">PTS</th>
-                            <th class="text-end">NRR</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for standing in standings %}
-                        <tr>
-                            <td class="fw-bold d-flex align-items-center">
-                                <img src="{% if standing.team.timage %}{{ standing.team.timage.url }}{% else %}https://placehold.co/40x40/EBF4FF/76A9FA?text=T{% endif %}" alt="{{ standing.team.tname }}" class="player-image-list me-3">
-                                <span class="text-light">{{ standing.team.tname }}</span>
-                            </td>
-                            <td class="text-end">{{ standing.matches_played }}</td>
-                            <td class="text-end">{{ standing.wins }}</td>
-                            <td class="text-end">{{ standing.losses }}</td>
-                            <td class="text-end">{{ standing.no_results }}</td>
-                            <td class="text-end fw-bold text-light">{{ standing.points }}</td>
-                            <td class="text-end">{{ standing.net_run_rate }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-3">Standings not available for this tournament.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+          <div class="table-responsive mt-3">
+            <h5 class="text-light mb-3">{{ match.tournament.name }} Standings</h5>
+            <table class="table table-sm table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 40%;">TEAM</th>
+                  <th class="text-end">P</th>
+                  <th class="text-end">W</th>
+                  <th class="text-end">L</th>
+                  <th class="text-end">NR</th>
+                  <th class="text-end">PTS</th>
+                  <th class="text-end">NRR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for standing in standings %}
+                <tr>
+                  <td class="fw-bold d-flex align-items-center">
+                    <img
+                      src="{% if standing.team.timage %}{{ standing.team.timage.url }}{% else %}https://placehold.co/40x40/EBF4FF/76A9FA?text=T{% endif %}"
+                      alt="{{ standing.team.tname }}" class="player-image-list me-3">
+                    <span class="text-light">{{ standing.team.tname }}</span>
+                  </td>
+                  <td class="text-end">{{ standing.matches_played }}</td>
+                  <td class="text-end">{{ standing.wins }}</td>
+                  <td class="text-end">{{ standing.losses }}</td>
+                  <td class="text-end">{{ standing.no_results }}</td>
+                  <td class="text-end fw-bold text-light">{{ standing.points }}</td>
+                  <td class="text-end">{{ standing.net_run_rate }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-3">Standings not available for this tournament.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
         {% endif %}
 
@@ -394,21 +493,29 @@
 </div>
 {% comment %} Add this script at the bottom of match_detail.html {% endcomment %}
 <script>
-    const matchId = {{ match.match_id }};
-    const isLive = {{ match.is_live|yesno:"true,false" }};
-    const scorecardWrapper = document.getElementById('scorecard-innings-wrapper');
-    const matchResultEl = document.getElementById('main-match-result');
+  const matchId = {{ match.match_id }};
+  {% if match.is_live %}
+  const isLive = true;
+  {% else %}
+  const isLive = false;
+  {% endif %}
+  const scorecardWrapper = document.getElementById('scorecard-innings-wrapper');
+  const matchResultEl = document.getElementById('main-match-result');
+  const liveBar = document.getElementById('live-player-bar');
+  const strikerEl = document.getElementById('live-striker');
+  const nonStrikerEl = document.getElementById('live-non-striker');
+  const bowlerEl = document.getElementById('live-bowler');
 
-    // This function builds the HTML for a single batsman
-    function buildBatsmanRow(bs) {
-        let dismissal = `<strong class="text-light">Not Out</strong>`;
-        if (bs.dismissal_type !== 'Not Out') {
-            dismissal = `${bs.dismissal_type} `;
-            if (bs.bowler_name) dismissal += ` b ${bs.bowler_name}`;
-            if (bs.fielder_name) dismissal += ` c ${bs.fielder_name}`;
-        }
+  // This function builds the HTML for a single batsman
+  function buildBatsmanRow(bs) {
+    let dismissal = `<strong class="text-light">Not Out</strong>`;
+    if (bs.dismissal_type !== 'Not Out') {
+      dismissal = `${bs.dismissal_type} `;
+      if (bs.bowler_name) dismissal += ` b ${bs.bowler_name}`;
+      if (bs.fielder_name) dismissal += ` c ${bs.fielder_name}`;
+    }
 
-        return `
+    return `
             <tr>
                 <td class="fw-bold text-accent">
                     <a href="/player/${bs.player_id}/" class="fw-bold text-accent text-decoration-none">
@@ -423,11 +530,11 @@
                 <td class="text-muted small">${dismissal}</td>
             </tr>
         `;
-    }
+  }
 
-    // This function builds the HTML for a single bowler
-    function buildBowlerRow(bl) {
-        return `
+  // This function builds the HTML for a single bowler
+  function buildBowlerRow(bl) {
+    return `
             <tr>
                 <td class="fw-bold text-accent">
                     <a href="/player/${bl.player_id}/" class="fw-bold text-accent text-decoration-none">
@@ -442,46 +549,46 @@
                 <td class="text-end">${bl.wides}</td>
             </tr>
         `;
+  }
+
+  // This function builds the HTML for the entire scorecard
+  function buildScorecardHtml(data) {
+    let allInningsHtml = '';
+
+    if (!data.innings || data.innings.length === 0) {
+      return '<p class="text-center text-muted p-4">Scorecard information is not available yet.</p>';
     }
 
-    // This function builds the HTML for the entire scorecard
-    function buildScorecardHtml(data) {
-        let allInningsHtml = '';
+    data.innings.forEach(inning => {
+      let battingTableHtml = inning.batting_scores.map(buildBatsmanRow).join('');
+      if (inning.batting_scores.length === 0) {
+        battingTableHtml = '<tr><td colspan="7" class="text-center text-muted py-3">Yet to bat.</td></tr>';
+      }
 
-        if (!data.innings || data.innings.length === 0) {
-            return '<p class="text-center text-muted p-4">Scorecard information is not available yet.</p>';
-        }
+      let bowlingTableHtml = inning.bowling_scores.map(buildBowlerRow).join('');
+      if (inning.bowling_scores.length === 0) {
+        bowlingTableHtml = '<tr><td colspan="7" class="text-center text-muted py-3">No bowlers yet.</td></tr>';
+      }
 
-        data.innings.forEach(inning => {
-            let battingTableHtml = inning.batting_scores.map(buildBatsmanRow).join('');
-            if (inning.batting_scores.length === 0) {
-                battingTableHtml = '<tr><td colspan="7" class="text-center text-muted py-3">Yet to bat.</td></tr>';
-            }
-
-            let bowlingTableHtml = inning.bowling_scores.map(buildBowlerRow).join('');
-            if (inning.bowling_scores.length === 0) {
-                bowlingTableHtml = '<tr><td colspan="7" class="text-center text-muted py-3">No bowlers yet.</td></tr>';
-            }
-
-            let fowHtml = inning.fow.map(fow => `
+      let fowHtml = inning.fow.map(fow => `
                 <li>
                     <strong class="text-light">${fow.score_at_fall}-${fow.wicket_number}</strong>
                     (${fow.player_name}, ${fow.over} ov)
                 </li>
             `).join('');
-            if (inning.fow.length === 0) {
-                fowHtml = '<li>No wickets have fallen.</li>';
-            }
+      if (inning.fow.length === 0) {
+        fowHtml = '<li>No wickets have fallen.</li>';
+      }
 
-            let extrasHtml = `
+      let extrasHtml = `
                 <p class="mt-3 mb-4 small text-muted">
                     <strong>Extras:</strong> ${inning.extras.total} (B: ${inning.extras.byes}, LB: ${inning.extras.leg_byes}, W: ${inning.extras.wides}, NB: ${inning.extras.no_balls}, P: ${inning.extras.penalty_runs})
                 </p>
             `;
 
-            let teamImageUrl = inning.batting_team_image || 'https://placehold.co/80x80';
+      let teamImageUrl = inning.batting_team_image || 'https://placehold.co/80x80';
 
-            allInningsHtml += `
+      allInningsHtml += `
                 <div class="card border-light mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center py-3">
                         <h5 class="mb-0 d-flex align-items-center">
@@ -528,58 +635,111 @@
                     </div>
                 </div>
             `;
-        });
-        return allInningsHtml;
-    }
+    });
+    return allInningsHtml;
+  }
 
-    // This is the main function that fetches data
-    async function fetchLiveScore() {
-        try {
-            const response = await fetch(`/api/live-scorecard/${matchId}/`);
-            if (!response.ok) return; // Don't update if there's an error
-            
-            const data = await response.json();
+  // This is the main function that fetches data
+  async function fetchLiveScore() {
+    try {
+      const response = await fetch(`/api/live-scorecard/${matchId}/`);
+      if (!response.ok) return; // Don't update if there's an error
 
-            // Update the main match result
-            if (matchResultEl) {
-                matchResultEl.innerHTML = `<strong>${data.result}</strong>`;
-            }
+      const data = await response.json();
 
-            // Re-build the entire scorecard HTML
-            if (scorecardWrapper) {
-                scorecardWrapper.innerHTML = buildScorecardHtml(data);
-            }
+      // Update the main match result
+      if (matchResultEl) {
+        matchResultEl.innerHTML = `<strong>${data.result}</strong>`;
+      }
 
-            // If match is no longer live, stop polling
-            if (data.is_completed || !data.is_live) {
-                stopPolling();
-            }
+      if (data.is_live && data.live_players && liveBar) {
 
-        } catch (error) {
-            console.error('Error fetching live score:', error);
+        const striker = data.live_players.striker;
+        const nonStriker = data.live_players.non_striker;
+        const bowler = data.live_players.bowler;
+
+        // Find the new bowler content div
+        const bowlerContentEl = document.getElementById('live-bowler-content');
+
+        if (striker || nonStriker || bowler) {
+          liveBar.style.display = 'block'; // Show the bar
+        } else {
+          liveBar.style.display = 'none'; // Hide the bar
         }
-    }
 
-    // --- Polling Logic ---
-    let pollingInterval;
-
-    function startPolling() {
-        // Fetch once immediately on page load
-        fetchLiveScore(); 
-        // Then fetch every 10 seconds
-        pollingInterval = setInterval(fetchLiveScore, 10000); 
-    }
-
-    function stopPolling() {
-        if (pollingInterval) {
-            clearInterval(pollingInterval);
+        // 1. Striker
+        if (striker) {
+          // float-md-end: Floats right on medium+ screens
+          // d-block d-md-inline: Stacks as a block on mobile, inline on desktop
+          // ms-md-2: Adds left margin on desktop only
+          strikerEl.innerHTML = `
+                        <span class="player-name"><span class="on-strike-dot"></span>${striker.name}</span>
+                        <span class="player-stats float-md-end d-block d-md-inline ms-md-2">${striker.runs} (${striker.balls})</span>
+                    `;
+        } else {
+          strikerEl.innerHTML = '';
         }
-    }
 
-    // Only start polling if the match is marked as live
-    if (isLive) {
-        startPolling();
+        // 2. Non-Striker
+        if (nonStriker) {
+          nonStrikerEl.innerHTML = `
+                        <span class="player-name">${nonStriker.name}</span>
+                        <span class="player-stats float-md-end d-block d-md-inline ms-md-2">${nonStriker.runs} (${nonStriker.balls})</span>
+                    `;
+        } else {
+          nonStrikerEl.innerHTML = '';
+        }
+
+        // 3. Bowler (Note: We're writing to bowlerContentEl)
+        if (bowler) {
+          bowlerContentEl.innerHTML = `
+                        <span class="player-name">${bowler.name}</span>
+                        <span class="player-stats float-md-end d-block d-md-inline ms-md-2">${bowler.wickets}/${bowler.runs} (${bowler.overs})</span>
+                    `;
+        } else {
+          bowlerContentEl.innerHTML = '';
+        }
+
+      } else if (liveBar) {
+        liveBar.style.display = 'none'; // Hide if not live
+      }
+
+      // Re-build the entire scorecard HTML
+      if (scorecardWrapper) {
+        scorecardWrapper.innerHTML = buildScorecardHtml(data);
+      }
+
+      // If match is no longer live, stop polling
+      if (data.is_completed || !data.is_live) {
+        stopPolling();
+        if (liveBar) liveBar.style.display = 'none';
+      }
+
+    } catch (error) {
+      console.error('Error fetching live score:', error);
     }
+  }
+
+  // --- Polling Logic ---
+  let pollingInterval;
+
+  function startPolling() {
+    // Fetch once immediately on page load
+    fetchLiveScore();
+    // Then fetch every 10 seconds
+    pollingInterval = setInterval(fetchLiveScore, 10000);
+  }
+
+  function stopPolling() {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+    }
+  }
+
+  // Only start polling if the match is marked as live
+  if (isLive) {
+    startPolling();
+  }
 
 </script>
 {% endblock 'main' %}
