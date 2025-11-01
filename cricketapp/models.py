@@ -228,6 +228,7 @@ class Match(models.Model):
         blank=True, 
         related_name='bowler_matches'
     )
+    max_overs = models.IntegerField(default=20, null=True, blank=True)
 
     def __str__(self):
         format_display = self.get_format_display() if self.format else "Match"

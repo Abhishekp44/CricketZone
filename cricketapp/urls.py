@@ -28,6 +28,7 @@ urlpatterns = [
     path('match_detail/<int:match_id>',views.match_detail, name='match_detail'),
     path('api/live-scorecard/<int:match_id>/', views.get_live_scorecard_json, name='get_live_scorecard_json'),
     path('api/live-scores-list/', views.get_all_live_scores_json, name='get_all_live_scores_json'),
+    path('api/get-scoring-state/<int:match_id>/', views.get_match_state_for_scoring, name='get_scoring_state'),
     path('teams/', views.teams_view, name='teams_view'),
     path('teams/<int:tid>/', views.players_view, name='players_view'),
     path('players/<int:pid>/', views.player_detail, name='player_detail'),

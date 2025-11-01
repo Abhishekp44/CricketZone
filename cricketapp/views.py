@@ -189,7 +189,6 @@ def match_squad(request):
         if "msave" in request.POST:
             mid = request.POST.get('mid', '').strip()
             players_json = request.POST.get('players', '[]')
-            print(players_json)
 
             # Check if match exists
             try:
@@ -204,7 +203,6 @@ def match_squad(request):
             # Parse players list
             try:
                 players = json.loads(players_json)
-                print(players)
             except json.JSONDecodeError:
                 return JsonResponse({"error": "Invalid player data"}, status=400)
 
@@ -215,7 +213,6 @@ def match_squad(request):
                     pname = entry[1].strip()      # Index 1
                     team_name = entry[2].strip()
 
-                    print(entry)
 
                     # Fetch player and team objects
                     team = Team.objects.get(tname=team_name)
@@ -282,6 +279,7 @@ def scorecard_entry(request):
 
             try:
                 match = Match.objects.get(match_id=match_id)
+                match.max_overs = state_data.get('maxOvers', match.max_overs or 20)
                 try:
                     # Find the striker and non-striker from the state
                     striker_data = next(b for b in state_data['batsmen'] if b['onStrike'])
@@ -419,6 +417,41 @@ def scorecard_entry(request):
                 if state_data.get('gameOver'):
                     match.is_completed = True
                     match.is_live = False
+                    result_string = "Match Completed" # A sensible default
+                    
+                    # We can only calculate a result if it's the 2nd innings
+                    # and we have a target.
+                    if state_data['inning']['number'] == 2 and state_data.get('target') is not None:
+                        
+                        target_score = state_data['target']
+                        second_inning_score = state_data['inning']['runs']
+                        
+                        try:
+                            # Get the 1st inning data
+                            first_inning = Inning.objects.get(match=match, number=1)
+                            first_inning_team = first_inning.batting_team
+                            first_inning_score = first_inning.total_runs
+                            
+                            # Case 1: Target chased (Batting team wins)
+                            if second_inning_score >= target_score:
+                                wickets_remaining = 10 - state_data['inning']['wickets']
+                                result_string = f"{inning.batting_team.tname} won by {wickets_remaining} wickets"
+                            
+                            # Case 2: Target not chased
+                            else:
+                                # Case 2a: Tie
+                                if second_inning_score == first_inning_score:
+                                    result_string = "Match Tied"
+                                
+                                # Case 2b: Bowling team wins
+                                else:
+                                    run_margin = first_inning_score - second_inning_score
+                                    result_string = f"{first_inning_team.tname} won by {run_margin} runs"
+                                    
+                        except Inning.DoesNotExist:
+                            result_string = "Result could not be calculated" # Error case
+                            
+                    match.result = result_string
                     match.current_striker = None
                     match.current_non_striker = None
                     match.current_bowler = None
@@ -445,7 +478,127 @@ def scorecard_entry(request):
 
     return render(request, 'scorecard_entry.html', {'matches': matches, 'dismissal_choices': BattingScore.DISMISSAL_CHOICES, })
 
+def get_match_state_for_scoring(request, match_id):
+    """
+    Checks if a match is live and, if so, reconstructs the
+    JavaScript 'state' object from the database.
+    """
+    try:
+        match = Match.objects.get(match_id=match_id)
+        if not match.is_live or match.is_completed:
+            # Match is not live, nothing to load
+            return JsonResponse({"is_live": False})
 
+        # --- MATCH IS LIVE, RECONSTRUCT THE STATE ---
+        current_inning = Inning.objects.filter(match=match).order_by('-number').first()
+        if not current_inning:
+            return JsonResponse({"is_live": False})
+
+        # --- Get Player Lists ---
+        squad = MatchSquad.objects.filter(match=match, is_playing=True)
+        batting_team_id = current_inning.batting_team_id
+        bowling_team_id = match.team2_id if match.team1_id == batting_team_id else match.team1_id
+
+        batting_players = list(squad.filter(team_id=batting_team_id).values_list('player__pid', 'player__pname', 'team__tid'))
+        bowling_players = list(squad.filter(team_id=bowling_team_id).values_list('player__pid', 'player__pname', 'team__tid'))
+
+        # --- Build the Python 'state' object ---
+        state = {
+            'maxOvers': match.max_overs,
+            'gameOver': match.is_completed,
+            'tossWinnerId': match.toss_winner_id,
+            'tossDecision': match.toss_decision,
+            'target': None,
+        }
+
+        # --- Inning ---
+        inning_overs_decimal = current_inning.overs
+        inning_balls = (inning_overs_decimal.to_integral_value() * 6) + (int(inning_overs_decimal % 1 * 10))
+        
+        try:
+            extras = current_inning.extras
+            extras_data = {'wd': extras.wides, 'nb': extras.no_balls, 'b': extras.byes, 'lb': extras.leg_byes}
+        except Extras.DoesNotExist:
+            extras_data = {'wd': 0, 'nb': 0, 'b': 0, 'lb': 0}
+
+        state['inning'] = {
+            'number': current_inning.number,
+            'runs': current_inning.total_runs,
+            'wickets': current_inning.total_wickets,
+            'balls': int(inning_balls),
+            'extras': extras_data
+        }
+        
+        if current_inning.number == 2:
+            try:
+                first_inning = Inning.objects.get(match=match, number=1)
+                state['target'] = first_inning.total_runs + 1
+            except Inning.DoesNotExist:
+                state['target'] = 0 # Fallback
+
+        state['battingTeam'] = {
+            'id': current_inning.batting_team.tid,
+            'name': current_inning.batting_team.tname
+        }
+
+        # --- Batsmen (Striker/Non-Striker) ---
+        state['batsmen'] = []
+        striker_bs = BattingScore.objects.filter(inning=current_inning, player=match.current_striker).first()
+        if striker_bs:
+            state['batsmen'].append({
+                'id': striker_bs.player_id, 'name': striker_bs.player.pname,
+                'runs': striker_bs.runs, 'balls': striker_bs.balls,
+                'fours': striker_bs.fours, 'sixes': striker_bs.sixes,
+                'onStrike': True
+            })
+        
+        non_striker_bs = BattingScore.objects.filter(inning=current_inning, player=match.current_non_striker).first()
+        if non_striker_bs:
+            state['batsmen'].append({
+                'id': non_striker_bs.player_id, 'name': non_striker_bs.player.pname,
+                'runs': non_striker_bs.runs, 'balls': non_striker_bs.balls,
+                'fours': non_striker_bs.fours, 'sixes': non_striker_bs.sixes,
+                'onStrike': False
+            })
+
+        # --- Bowler and BowlingFigures ---
+        bowling_figures_db = BowlingScore.objects.filter(inning=current_inning)
+        bowling_figures_state = {}
+        
+        for bs in bowling_figures_db:
+            overs_decimal = bs.overs
+            balls = (overs_decimal.to_integral_value() * 6) + (int(overs_decimal % 1 * 10))
+            bowling_figures_state[bs.player_id] = {
+                'id': bs.player_id, 'name': bs.player.pname,
+                'balls': int(balls), 'maidens': bs.maidens,
+                'runs': bs.runs_conceded, 'wickets': bs.wickets,
+                'no_balls': bs.no_balls, 'wides': bs.wides
+            }
+        
+        state['bowlingFigures'] = bowling_figures_state
+        if match.current_bowler_id in bowling_figures_state:
+            state['bowler'] = bowling_figures_state[match.current_bowler_id]
+        else:
+            state['bowler'] = None # Should be handled by UI
+
+        # --- Out Batsmen ---
+        out_ids = list(BattingScore.objects.filter(inning=current_inning).exclude(dismissal_type='Not Out').values_list('player_id', flat=True))
+        state['outBatsmenIds'] = out_ids
+        
+        # --- ThisOver (Limitation) ---
+        state['thisOver'] = [] # Cannot be reconstructed from DB. Will be blank on load.
+
+        return JsonResponse({
+            "is_live": True,
+            "state": state,
+            "batting_players": batting_players,
+            "bowling_players": bowling_players
+        })
+        
+    except Match.DoesNotExist:
+        return JsonResponse({"error": "Match not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": "Failed to load state: " + str(e)}, status=500)
 
 def get_live_scorecard_json(request, match_id):
     """

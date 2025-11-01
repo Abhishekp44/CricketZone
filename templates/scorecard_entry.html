@@ -354,7 +354,7 @@ function chkmatch() {
                 const option = new Option(team[1], team[0]);
                 teamselect.add(option);
             });
-            document.getElementById("tossdiv").style.display = "flex";
+            loadMatchState(mid);
         },
         error: (err) => alert('Error fetching match details.')
     });
@@ -820,8 +820,14 @@ function saveStateToBackend(extraData = {}) {
         },
         success: function(response) {
             console.log("State saved successfully:", response);
+            if (state.gameOver) {
+                alert("Match Over! Redirecting to dashboard.");
+                
+                // IMPORTANT: Change this URL to your actual admin dashboard
+                window.location.href = "/admin_dashboard"; // Or "/admin/" or "/dashboard/"
+            }
             // If the innings just ended, trigger the start of the next one
-            if (state.inning_completed) {
+            else if (state.inning_completed) {
                 delete state.inning_completed; // Clean up flag
                 startSecondInnings();
             }
@@ -829,6 +835,78 @@ function saveStateToBackend(extraData = {}) {
         error: function(error) {
             console.error("Failed to save state:", error.responseText);
             alert("Error: Could not save data to the server. Please check your connection and try again.");
+        }
+    });
+}
+// In scorecard_entry.html <script>
+
+function loadMatchState(matchId) {
+    // This function checks the match state and loads the correct UI
+    $.ajax({
+        url: `/api/get-scoring-state/${matchId}/`,
+        type: 'GET',
+        success: function(response) {
+            
+            if (response.has_full_state) {
+                // --- 3. "IN-PROGRESS" STATE ---
+                // Match is fully live, load the scorecard
+                console.log("Loading existing 'In-Progress' state...");
+
+                state = response.state;
+                battingTeamPlayers = response.batting_players;
+                bowlingTeamPlayers = response.bowling_players;
+                
+                $('#tossw').val(response.toss_winner_id);
+                $('#tossd').val(response.toss_decision);
+                
+                $('#scorecardArea').css('display', 'block');
+                $('#tossdiv').css('display', 'none');
+                $('#match').prop('disabled', true);
+                
+                history = []; 
+                updateUI();
+                
+                alert("Live match state loaded successfully.");
+
+            } else if (response.is_live) {
+                // --- 2. "TOSS DONE" STATE ---
+                // Match is live, but players not set.
+                // Load toss data and show player select modal.
+                console.log("Loading 'Toss Done' state...");
+
+                // Set global player lists
+                battingTeamPlayers = response.batting_players;
+                bowlingTeamPlayers = response.bowling_players;
+                
+                // Set and disable toss dropdowns
+                $('#tossw').val(response.toss_winner_id);
+                $('#tossd').val(response.toss_decision);
+                $('#tossw').prop('disabled', true);
+                $('#tossd').prop('disabled', true);
+                
+                // Hide setup
+                $('#tossdiv').css('display', 'flex'); // Show the populated toss div
+                $('#match').prop('disabled', true);
+
+                // --- Manually populate and open the player modal ---
+                populateSelect("strikerSelect", battingTeamPlayers, "Select Striker");
+                populateSelect("nonStrikerSelect", battingTeamPlayers, "Select Non-Striker");
+                populateSelect("bowlerSelect", bowlingTeamPlayers, "Select Bowler");
+                openModal('playerSelectionModal');
+                
+                alert("Toss has been set. Please select players to begin.");
+
+            } else {
+                // --- 1. "NEW MATCH" STATE ---
+                // Match is not live, show toss setup
+                console.log("This is a new match, starting fresh.");
+                document.getElementById("tossdiv").style.display = "flex";
+            }
+        },
+        error: (err) => {
+            console.error("Error fetching match state:", err.responseText);
+            // Fallback: just treat it as a new match
+            document.getElementById("tossdiv").style.display = "flex";
         }
     });
 }
