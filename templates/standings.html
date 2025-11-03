@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<style>
+    /* Adding some styles to make it look good in your dark theme */
+    .form-select {
+        background-color: #222831;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        font-size: 16px;
+        color: white;
+        max-width: 400px;
+        margin: 0 auto; /* Center the dropdown */
+    }
+
+    .standings-table {
+        margin-top: 30px;
+        color: #EEEEEE;
+    }
+
+    .standings-table .team-name {
+        font-weight: bold;
+    }
+
+    /* --- ADD THIS NEW STYLE --- */
+    .team-logo {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        object-fit: contain;
+        background-color: #ffffff; /* Fallback bg for logos */
+        margin-right: 10px; /* Space between logo and name */
+    }
+</style>
+
+<div class="site-section bg-dark">
+    <div class="container">
+        <div class="row" style="margin-top: 70px;">
+            <div class="col-12 text-center">
+                <h1 class="text-white mb-4">Tournament Standings</h1>
+                
+                <form action="{% url 'standings_view' %}" method="GET">
+                    <select class="form-select" name="tournament_id" onchange="this.form.submit()">
+                        <option value="">-- Select a Tournament --</option>
+                        {% for t in tournaments %}
+                            <option value="{{ t.id }}" {% if t.id == selected_tournament_id %}selected{% endif %}>
+                                {{ t.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                {% if standings %}
+                    <h2 class="text-white text-center mt-5 mb-3">{{ selected_tournament.name }}</h2>
+                    <div class="table-responsive standings-table">
+                        <table class="table table-dark table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Team</th>
+                                    <th>P</th>
+                                    <th>W</th>
+                                    <th>L</th>
+                                    <th>T</th>
+                                    <th>NR</th>
+                                    <th>PTS</th>
+                                    <th>NRR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for s in standings %}
+                            <tr>
+                                <td class="team-name d-flex align-items-center">
+                                    <img src="{% if s.team.timage %}{{ s.team.timage.url }}{% else %}https://placehold.co/40x40/393E46/EEEEEE?text=T{% endif %}" 
+                                         alt="{{ s.team.tname }}" 
+                                         class="team-logo">
+                                    <span>{{ s.team.tname }}</span>
+                                </td>
+                                <td>{{ s.matches_played }}</td>
+                                <td>{{ s.wins }}</td>
+                                <td>{{ s.losses }}</td>
+                                <td>{{ s.ties }}</td>
+                                <td>{{ s.no_results }}</td>
+                                <td class="fw-bold">{{ s.points }}</td>
+                                <td>{{ s.net_run_rate }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
+                {% elif selected_tournament_id %}
+                    <p class="text-white text-center mt-5">No standings available for this tournament yet.</p>
+                {% else %}
+                    <p class="text-white text-center mt-5">Please select a tournament to view the standings.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock 'main' %}

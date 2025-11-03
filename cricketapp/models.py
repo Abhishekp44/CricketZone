@@ -65,13 +65,7 @@ class Player(models.Model):
     pjr_no = models.IntegerField()  # New field added
     pimage = models.ImageField(upload_to='player_images/', null=True, blank=True)
     teams = models.ManyToManyField(Team, related_name='players', null=True, blank=True)
-    current_team = models.ForeignKey(
-        Team,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='current_players'
-    )
+    past_teams = models.ManyToManyField(Team, related_name='past_players', null=True, blank=True)
 
     def __str__(self):
         return f"{self.pname} ({self.pjr_no})"

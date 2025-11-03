@@ -942,7 +942,8 @@ def player_detail(request, pid):
     Displays the detailed profile and tournament-wise career statistics for a single player.
     """
     player = get_object_or_404(Player, pid=pid)
-    teams = player.teams.all()
+    current_teams = player.teams.all()
+    past_teams = player.past_teams.all()
 
     # --- New Logic for Tournament-wise Stats ---
 
@@ -1043,13 +1044,59 @@ def player_detail(request, pid):
 
     context = {
         'player': player,
-        'teams': teams,
+        'current_teams': current_teams,  
+        'past_teams': past_teams,
         'tournament_stats': processed_stats,
     }
     return render(request, 'player_detail.html', context)
 
+def standings_view(request):
+    """
+    Displays a list of tournaments and the standings table
+    for a selected tournament. Defaults to "IPL 2024".
+    """
+    selected_tournament_id = request.GET.get('tournament_id')
+    
+    # Get all tournaments for the dropdown menu
+    tournaments = Tournament.objects.all().order_by('name')
+    
+    standings = None
+    selected_tournament = None
 
+    # --- NEW: Default to "IPL 2024" ---
+    if not selected_tournament_id:
+        try:
+            # Try to find "IPL 2024" by name
+            ipl_tournament = Tournament.objects.get(name__iexact="IPL 2024")
+            selected_tournament_id = ipl_tournament.id
+        except Tournament.DoesNotExist:
+            # "IPL 2024" doesn't exist, so just show nothing
+            selected_tournament_id = None
+    # --- END OF NEW LOGIC ---
 
+    if selected_tournament_id:
+        try:
+            # We must cast the ID to an int *before* the query
+            selected_tournament_id = int(selected_tournament_id)
+            
+            # Get standings and pre-fetch the related team data (for logos)
+            standings = TeamStanding.objects.filter(
+                tournament_id=selected_tournament_id
+            ).select_related('team')
+            
+            selected_tournament = get_object_or_404(Tournament, pk=selected_tournament_id)
+            
+        except (ValueError, TypeError):
+            selected_tournament_id = None
+            
+    context = {
+        'tournaments': tournaments,
+        'standings': standings,
+        'selected_tournament': selected_tournament,
+        'selected_tournament_id': selected_tournament_id,
+    }
+    
+    return render(request, 'standings.html', context)
 def admin_api(request):
     return render(request, 'admin_api.html')
 

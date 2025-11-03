@@ -62,6 +62,7 @@ urlpatterns = [
     path('payment/success/', views.payment_success, name='payment_success'),
     path('view-ticket/<int:booking_id>/', views.view_ticket, name='view_ticket'),
     path('ticket/download/<int:booking_id>/', views.download_ticket_pdf, name='download_ticket_pdf'),
+    path('standings/', views.standings_view, name='standings_view'),
     # path('ticket/<int:ticket_id>/add/', views.add_to_cart, name='add_to_cart'),
     # path('order/', views.order, name='order'),
     # path('payment/', views.payment_page, name='payment_page'),
