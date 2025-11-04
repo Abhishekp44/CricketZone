@@ -1107,7 +1107,7 @@ def standings_view(request):
             # Get standings and pre-fetch the related team data (for logos)
             standings = TeamStanding.objects.filter(
                 tournament_id=selected_tournament_id
-            ).select_related('team')
+            ).select_related('team').order_by('-points', '-wins', '-net_run_rate')
             
             selected_tournament = get_object_or_404(Tournament, pk=selected_tournament_id)
             
@@ -1122,6 +1122,7 @@ def standings_view(request):
     }
     
     return render(request, 'standings.html', context)
+
 def admin_api(request):
     return render(request, 'admin_api.html')
 
