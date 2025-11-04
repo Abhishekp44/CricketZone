@@ -31,7 +31,75 @@ from django.template.loader import get_template
 from datetime import datetime, timedelta
 from django.db.models import Q, Avg, Sum, Count
 from django.utils import timezone
+from rest_framework import generics
 
+class BaseBulkUpdateView(generics.GenericAPIView):
+    """
+    Base view for bulk updates.
+    We subclass this to avoid repeating the 'patch' logic.
+    """
+    def patch(self, request, *args, **kwargs):
+        ids = [item.get('id') for item in request.data if item.get('id')]
+        if not ids:
+            return Response(
+                {"error": "No 'id' found in request data."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        instances = self.get_queryset().filter(id__in=ids)
+        
+        if len(ids) != len(instances):
+             return Response(
+                {"error": "One or more IDs not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+             )
+
+        serializer = self.get_serializer(
+            instances, 
+            data=request.data, 
+            many=True, 
+            partial=True
+        )
+        
+        serializer.is_valid(raise_exception=True)
+        updated_instances = serializer.save()
+        
+        return_data = self.get_serializer(updated_instances, many=True).data
+        return Response(return_data, status=status.HTTP_200_OK)
+
+
+# Now we just create subclasses for each model
+class PlayerBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = PlayerSerializer
+    queryset = Player.objects.all()
+
+class TeamBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = TeamSerializer
+    queryset = Team.objects.all()
+
+class MatchBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = MatchSerializer
+    queryset = Match.objects.all()
+
+class InningBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = InningSerializer
+    queryset = Inning.objects.all()
+
+class BattingScoreBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = BattingScoreSerializer
+    queryset = BattingScore.objects.all()
+
+class BowlingScoreBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = BowlingScoreSerializer
+    queryset = BowlingScore.objects.all()
+
+class FallOfWicketBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = FallOfWicketSerializer
+    queryset = FallOfWicket.objects.all()
+
+class ExtrasBulkUpdateView(BaseBulkUpdateView):
+    serializer_class = ExtrasSerializer
+    queryset = Extras.objects.all()
 
 class FallofWicketCreateAPIView(APIView):
     def post(self, request):

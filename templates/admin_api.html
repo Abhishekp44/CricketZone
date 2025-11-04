@@ -50,6 +50,12 @@
     .settings-card p {
         color: #ffffff;
         font-size: 0.95rem;
+        margin-bottom: 0; /* Reset margin */
+    }
+
+    /* NEW: Wrapper for the action buttons */
+    .settings-card-actions {
+        margin-top: 1rem;
     }
 
     .settings-btn {
@@ -60,7 +66,6 @@
         border-radius: 5px;
         text-decoration: none;
         display: inline-block;
-        margin-top: 1rem;
         transition: background-color 0.2s ease;
     }
 
@@ -68,71 +73,114 @@
         background-color: #c81235;
         color: white;
     }
+
+    /* NEW: Style for the 'Update' button */
+    .settings-btn-update {
+        background-color: #007bff; /* Blue color */
+        color: white;
+        font-weight: 600;
+        padding: 0.6rem 1.2rem;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.2s ease;
+        margin-left: 0.5rem; /* Space between buttons */
+    }
+
+    .settings-btn-update:hover {
+        background-color: #0056b3;
+        color: white;
+    }
 </style>
 
 <div class="site-section bg-dark">
     <div class="container" id="wrapper">
-        <!-- Sidebar -->
         {% include 'sidebar.html' %}
 
-        <!-- Page Content -->
         <div id="page-content-wrapper" style="margin-top: 10%;">
             <h2>Settings</h2>
             <p>Manage your application entities from this panel.</p>
 
             <div class="mt-4">
-                <!-- Add Teams Card -->
                 <div class="settings-card">
-                    <h3>Add Teams</h3>
-                    <p>Create and manage the teams participating in the league.</p>
-                    <a href="/teams/create/" class="settings-btn">Create Team</a>
+                    <h3>Teams</h3>
+                    <p>Create new teams or update existing team details.</p>
+                    <div class="settings-card-actions">
+                        <a href="/teams/create/" class="settings-btn">Create Team</a>
+                        <a href="/teams/bulk-update/" class="settings-btn-update">Update Teams</a>
+                    </div>
                 </div>
 
-                <!-- Add Players Card -->
                 <div class="settings-card">
-                    <h3>Add Players</h3>
-                    <p>Add new players and assign them to their respective teams.</p>
-                    <a href="/players/create/" class="settings-btn">Create Player</a>
+                    <h3>Players</h3>
+                    <p>Add new players and assign them to teams, or update player stats.</p>
+                    <div class="settings-card-actions">
+                        <a href="/players/create/" class="settings-btn">Create Player</a>
+                        <a href="/players/bulk-update/" class="settings-btn-update">Update Players</a>
+                    </div>
                 </div>
 
-                <!-- Add Match Squad Card -->
                 <div class="settings-card">
-                    <h3>Add Match Squad</h3>
+                    <h3>Match Squad</h3>
                     <p>Define the playing squad for an upcoming match.</p>
-                    <a href="/matchsquad/create/" class="settings-btn">Create Match Squad</a>
-                </div>
-
-                <!-- Create Matches Card -->
-                <div class="settings-card">
-                    <h3>Create Matches</h3>
-                    <p>Schedule new matches, setting the date, venue, and competing teams.</p>
-                    <a href="/match/create/" class="settings-btn">Create Match</a>
+                    <div class="settings-card-actions">
+                        <a href="/matchsquad/create/" class="settings-btn">Create Match Squad</a>
+                        </div>
                 </div>
 
                 <div class="settings-card">
-                    <h3>Create Match Innings</h3>
+                    <h3>Matches</h3>
+                    <p>Schedule new matches or update details for existing matches.</p>
+                    <div class="settings-card-actions">
+                        <a href="/match/create/" class="settings-btn">Create Match</a>
+                        <a href="/matches/bulk-update/" class="settings-btn-update">Update Matches</a>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <h3>Match Innings</h3>
                     <p>Add Innings of Matches which contain match detail.</p>
-                    <a href="/inning/create/" class="settings-btn">Create Inning</a>
+                    <div class="settings-card-actions">
+                        <a href="/inning/create/" class="settings-btn">Create Inning</a>
+                        <a href="/innings/bulk-update/" class="settings-btn-update">Update Innings</a>
+                    </div>
                 </div>
 
                 <div class="settings-card">
-                    <h3>Add Batting Score</h3>
-                    <a href="/batting/create/" class="settings-btn">Add Batting Score</a>
+                    <h3>Batting Scores</h3>
+                    <p>Add new batting score entries for an inning.</p>
+                    <div class="settings-card-actions">
+                        <a href="/batting/create/" class="settings-btn">Add Batting Score</a>
+                        <a href="/scores/batting/bulk-update/" class="settings-btn-update">Update Scores</a>
+                    </div>
                 </div>
 
                 <div class="settings-card">
-                    <h3>Add Bowling Score</h3>
-                    <a href="/bowling/create/" class="settings-btn">Add Bowling Score</a>
+                    <h3>Bowling Scores</h3>
+                    <p>Add new bowling score entries for an inning.</p>
+                    <div class="settings-card-actions">
+                        <a href="/bowling/create/" class="settings-btn">Add Bowling Score</a>
+                        <a href="/scores/bowling/bulk-update/" class="settings-btn-update">Update Scores</a>
+                    </div>
                 </div>
 
                 <div class="settings-card">
-                    <h3>Add Fall of Wickets</h3>
-                    <a href="/fallofwicket/create/" class="settings-btn">Add Fall of Wickets</a>
+                    <h3>Fall of Wickets</h3>
+                    <p>Add fall of wicket data for an inning.</p>
+                    <div class="settings-card-actions">
+                        <a href="/fallofwicket/create/" class="settings-btn">Add Fall of Wickets</a>
+                        <a href="/scores/fow/bulk-update/" class="settings-btn-update">Update FOW</a>
+                    </div>
                 </div>
 
                 <div class="settings-card">
-                    <h3>Add Extras</h3>
-                    <a href="/extras/create/" class="settings-btn">Add Extras</a>
+                    <h3>Extras</h3>
+                    <p>Add extras (wides, no-balls, etc.) for an inning.</p>
+                    <div class="settings-card-actions">
+                        <a href="/extras/create/" class="settings-btn">Add Extras</a>
+                        <a href="/scores/extras/bulk-update/" class="settings-btn-update">Update Extras</a>
+    
+                    </div>
                 </div>
             </div>
         </div>
