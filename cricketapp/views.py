@@ -33,6 +33,31 @@ from django.db.models import Q, Avg, Sum, Count
 from django.utils import timezone
 
 
+class FallofWicketCreateAPIView(APIView):
+    def post(self, request):
+        is_bulk = isinstance(request.data, list)
+        serializer = FallOfWicketSerializer(data=request.data, many=is_bulk)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class ExtrasCreateAPIView(APIView):
+    def post(self, request):
+        is_bulk = isinstance(request.data, list)
+        serializer = ExtrasSerializer(data=request.data, many=is_bulk)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 class InningCreateAPIView(APIView):
     def post(self, request):

@@ -2,7 +2,7 @@ from django.urls import path
 from cricketapp import views
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import PlayerCreateAPIView, TeamCreateAPIView, MatchCreateAPIView,MatchSquadCreateAPIView,InningCreateAPIView,BattingScoreCreateAPIView,BowlingScoreCreateAPIView
+from .views import PlayerCreateAPIView, TeamCreateAPIView, MatchCreateAPIView,MatchSquadCreateAPIView,InningCreateAPIView,BattingScoreCreateAPIView,BowlingScoreCreateAPIView,FallofWicketCreateAPIView,ExtrasCreateAPIView
 from django.contrib.auth import views as auth_views
 
 
@@ -24,6 +24,8 @@ urlpatterns = [
     path('inning/create/', InningCreateAPIView.as_view(), name='inning-create'),
     path('batting/create/', BattingScoreCreateAPIView.as_view(), name='BattingScore-create'),
     path('bowling/create/', BowlingScoreCreateAPIView.as_view(), name='BowlingScore-create'),
+    path('fallofwicket/create/', FallofWicketCreateAPIView.as_view(), name='FallofWicket-create'),
+    path('extras/create/', ExtrasCreateAPIView.as_view(), name='Extras-create'),
     path('matches/',views.matches_view, name='matches'),
     path('match_detail/<int:match_id>',views.match_detail, name='match_detail'),
     path('api/live-scorecard/<int:match_id>/', views.get_live_scorecard_json, name='get_live_scorecard_json'),
