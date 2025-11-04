@@ -2,17 +2,32 @@
 {% load static %}
 {% block 'main' %}
 {% csrf_token %}
+<style>
+    #match {
+        /* This ensures the text stays on a single line */
+        white-space: nowrap;
+
+        /* This is the key: it hides any text that overflows the box */
+        overflow: hidden; 
+
+        /* This adds the "..." to show that text has been cut off */
+        text-overflow: ellipsis;
+
+        /* This just ensures it's 100% of the parent column's width */
+        width: 100%; 
+    }
+</style>
 
 <div class="site-section bg-dark">
     <div class="container">
         <div class="row mt-3 justify-content-evenly">
-            <h1 id="scorecard-entry-header">Match Squad Selection</h1>
+            <h1 id="scorecard-entry-header" style="margin-top: 50px;">Match Squad Selection</h1>
         </div>
 
         <form id="scorecardForm" method="POST" action="{% url 'match_squad' %}">
             {% csrf_token %}
-            <div class="row mt-3">
-                <div class="col-md-6">
+            <div class="row mt-3 justify-content-center">
+                <div class="col-12 col-lg-8 col-xl-6">
                     <label for="match">Select Match</label>
                     <select class="form-select" name="match" id="match" required onchange="chkmatch()">
                         <option value="">---Select Match---</option>
