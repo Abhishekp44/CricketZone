@@ -3,17 +3,11 @@
 {% block 'main' %}
 {% csrf_token %}
 <style>
+    /* Your style for #match remains unchanged */
     #match {
-        /* This ensures the text stays on a single line */
         white-space: nowrap;
-
-        /* This is the key: it hides any text that overflows the box */
         overflow: hidden; 
-
-        /* This adds the "..." to show that text has been cut off */
         text-overflow: ellipsis;
-
-        /* This just ensures it's 100% of the parent column's width */
         width: 100%; 
     }
 </style>
@@ -26,15 +20,25 @@
 
         <form id="scorecardForm" method="POST" action="{% url 'match_squad' %}">
             {% csrf_token %}
+            
+            <div class="row mt-3 justify-content-center">
+                <div class="col-12 col-lg-8 col-xl-6 text-center">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="squadMode" id="modeAdd" value="add" checked>
+                        <label class="form-check-label" for="modeAdd">Add New Squad</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="squadMode" id="modeUpdate" value="update">
+                        <label class="form-check-label" for="modeUpdate">Update Existing Squad</label>
+                    </div>
+                </div>
+            </div>
+
             <div class="row mt-3 justify-content-center">
                 <div class="col-12 col-lg-8 col-xl-6">
                     <label for="match">Select Match</label>
                     <select class="form-select" name="match" id="match" required onchange="chkmatch()">
-                        <option value="">---Select Match---</option>
-                        {% for match in matches %}
-                        <option value="{{ match.match_id }}">{{ match }}</option>
-                        {% endfor %}
-                    </select>
+                        </select>
                 </div>
             </div>
 
@@ -76,7 +80,55 @@
     </div>
 </div>
 <script>
+    // --- NEW: Storing matches from Django context ---
+    const inactiveMatches = [
+        {% for match in inactive_matches %}
+        { id: '{{ match.match_id }}', text: '{{ match }}' },
+        {% endfor %}
+    ];
+    const activeMatches = [
+        {% for match in active_matches %}
+        { id: '{{ match.match_id }}', text: '{{ match }}' },
+        {% endfor %}
+    ];
+
     let team1, team2;
+    const csrftoken = getCookie('csrftoken'); // Assumes getCookie function is present
+
+    // --- NEW: Run on page load ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial mode and populate dropdown
+        updateMatchDropdown();
+
+        // Add listeners to radio buttons
+        document.getElementById('modeAdd').addEventListener('change', updateMatchDropdown);
+        document.getElementById('modeUpdate').addEventListener('change', updateMatchDropdown);
+    });
+
+    // --- NEW: Function to update dropdown based on mode ---
+    function updateMatchDropdown() {
+        const mode = document.querySelector('input[name="squadMode"]:checked').value;
+        const matchSelect = document.getElementById('match');
+        const matches = (mode === 'add') ? inactiveMatches : activeMatches;
+
+        // Clear existing options and tables
+        matchSelect.innerHTML = '';
+        $('#team1_players').empty();
+        $('#team2_players').empty();
+        $('#t1_name').text('Team 1 Players');
+        $('#t2_name').text('Team 2 Players');
+
+
+        // Add default option
+        matchSelect.add(new Option('---Select Match---', ''));
+
+        // Populate with new options
+        matches.forEach(function(match) {
+            matchSelect.add(new Option(match.text, match.id));
+        });
+    }
+
+    // --- getCookie function (unchanged) ---
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -91,30 +143,48 @@
         }
         return cookieValue;
     }
-    const csrftoken = getCookie('csrftoken');
 
+    // --- MODIFIED: chkmatch() ---
     function chkmatch() {
         var mid = document.getElementById("match").value;
-        console.log("MID", mid);
+        
+        // Clear tables if user selects default
+        if (!mid) { 
+            $('#team1_players').empty();
+            $('#team2_players').empty();
+            $('#t1_name').text('Team 1 Players');
+            $('#t2_name').text('Team 2 Players');
+            return;
+        }
+
+        var mode = document.querySelector('input[name="squadMode"]:checked').value; // Get current mode
         var chkmatch = 'chkmatch';
 
         $.ajax({
             url: 'match_squad',
             type: 'POST',
             headers: { 'X-CSRFToken': csrftoken },
-            data: { "mid": mid, "chkmatch": chkmatch },
+            data: { "mid": mid, "chkmatch": chkmatch, "mode": mode }, // Send mode
             success: function (response) {
-                if ((response) == "Match Not Found" || (response) == "Match Already Exist") {
-                    alert(response);
+                // MODIFIED: Handle JSON error response
+                if (response.error) {
+                    alert(response.error);
                     document.getElementById('match').value = '';
+                    // Clear tables on error
+                    $('#team1_players').empty();
+                    $('#team2_players').empty();
+                    $('#t1_name').text('Team 1 Players');
+                    $('#t2_name').text('Team 2 Players');
                 }
                 else {
                     teams = response["teams"];
                     t1_players = response["team1_players"];
                     t2_players = response["team2_players"];
-                    console.log(response);
-                    console.log(t1_players);
-                    console.log(t2_players);
+                    // NEW: Get existing squad data (will be {} in 'add' mode)
+                    let existing_squad = response.existing_squad || {}; 
+
+                    console.log("Existing Squad:", existing_squad);
+
                     team1 = teams[0][1];
                     team2 = teams[1][1];
 
@@ -122,47 +192,65 @@
                     document.getElementById("t2_name").innerText = `${team2} Players`;
 
                     let table1 = document.getElementById("team1_players").id;
-                    fillPlayerTable(table1, t1_players)
+                    // MODIFIED: Pass existing_squad to fillPlayerTable
+                    fillPlayerTable(table1, t1_players, existing_squad) 
                     let table2 = document.getElementById("team2_players").id;
-                    fillPlayerTable(table2, t2_players)
-
-
+                    fillPlayerTable(table2, t2_players, existing_squad)
                 }
-
             },
-            error: function (error) {
-                alert(error);
+            error: function (xhr, status, error) {
+                // Improved error logging
+                let errorMsg = "An unknown error occurred.";
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg = xhr.responseJSON.error;
+                } else if (xhr.responseText) {
+                    try {
+                        errorMsg = JSON.parse(xhr.responseText).error;
+                    } catch (e) {
+                        errorMsg = xhr.responseText;
+                    }
+                }
+                alert("Error: " + errorMsg);
+                console.error(xhr.responseText);
             }
         });
-
-
-
     }
 
-    function fillPlayerTable(tableId, players) {
+    // --- MODIFIED: fillPlayerTable() ---
+    // Now accepts `existing_squad` to pre-check boxes
+    function fillPlayerTable(tableId, players, existing_squad) {
         console.log("Filling table:", tableId, players);
-
 
         const tbody = $('#' + tableId);
         tbody.empty();
-
         let count = 0;
 
         players.forEach(function (player, index) {
             const pid = player.pid;
             const pname = player.pname;
 
+            // --- NEW: Logic to pre-check boxes ---
+            let player_checked = "";
+            let is_playing_checked = "";
+            
+            // Check if this player is in the existing squad
+            if (existing_squad && existing_squad[pid]) { 
+                player_checked = "checked"; // Player is in the squad
+                if (existing_squad[pid].is_playing) {
+                    is_playing_checked = "checked"; // Player is also in the playing 11
+                }
+            }
+            // --- End new logic ---
+
             const row = `
             <tr>
                 <td>
                     <input type="checkbox" name="${tableId}_player" 
                            id="${tableId}_player_${count}" 
-                           value="${pid}">
-                </td>
+                           value="${pid}" ${player_checked}> </td>
                 <td>
                     <input type="checkbox" name="${tableId}_is_playing" 
-                           id="${tableId}_is_playing_${count}">
-                </td>
+                           id="${tableId}_is_playing_${count}" ${is_playing_checked}> </td>
                 <td>
                     <label for="${tableId}_player_${count}">${pname}</label>
                 </td>
@@ -174,9 +262,12 @@
         });
     }
 
+    // --- MODIFIED: chksave() ---
     function chksave() {
         let msave = "S";
         var mid = document.getElementById("match").value;
+        var mode = document.querySelector('input[name="squadMode"]:checked').value; // NEW: Get current mode
+        
         if (!mid) {
             alert("Please select a match.");
             return;
@@ -197,13 +288,12 @@
                 const label = row.getElementsByTagName("label")[0];
 
                 let selected = false;
-                let pid = null;
+                let pid = null; // We don't need pid for the save, but good to have
                 let is_playing = false;
                 let pname = label ? label.innerText : "";
 
                 for (let input of inputs) {
                     if (input.name.includes("_player") && input.checked) {
-                        console.log("selected");
                         selected = true;
                         pid = input.value;
                     }
@@ -212,13 +302,18 @@
                     }
                 }
 
-                if (selected && pid) {
+                // Only add to list if the player is selected
+                if (selected) {
                     playerlist.push([is_playing, pname, tableInfo.team]);
                 }
             }
         });
 
         console.log("Prepared Player List:", playerlist);
+        if (playerlist.length === 0) {
+            alert("Please select at least one player.");
+            return;
+        }
 
         $.ajax({
             url: 'match_squad',
@@ -227,23 +322,29 @@
             data: {
                 "mid": mid,
                 "msave": msave,
-                "players": JSON.stringify(playerlist)
+                "players": JSON.stringify(playerlist),
+                "mode": mode // NEW: Send the mode
             },
             success: function (response) {
                 if (response.error) {
                     alert(response.error);
                 } else if (response.message) {
                     alert(response.message);
-                    window.location.href = '/admin_dashboard';
+                    window.location.href = '/admin_dashboard'; // Or wherever you want to redirect
                 } else {
                     alert("Unexpected response");
                 }
-
-
             },
-            error: function (error) {
-                alert("Error saving squad.");
-                console.error(error);
+            error: function (xhr, status, error) {
+                 // Improved error logging
+                 let errorMsg = "An unknown error occurred while saving.";
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg = xhr.responseJSON.error;
+                } else {
+                    errorMsg = xhr.responseText;
+                }
+                alert("Error: " + errorMsg);
+                console.error(xhr.responseText);
             }
         });
     }

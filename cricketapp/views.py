@@ -246,34 +246,64 @@ def admin_required_404(view_func):
 @csrf_exempt
 @admin_required_404
 def match_squad(request):
-    matches = Match.objects.filter(is_active=False)
+    
+    # --- GET Request Logic ---
+    if request.method == 'GET':
+        inactive_matches = Match.objects.filter(is_active=False)
+        active_matches = Match.objects.filter(is_active=True)
+        context = {
+            'inactive_matches': inactive_matches,
+            'active_matches': active_matches
+        }
+        return render(request, 'match_squad.html', context)
+
+    # --- POST Request Logic ---
     if request.method == 'POST':
         print("POST received")
         print("Request.POST:", request.POST)
 
         if "chkmatch" in request.POST:
             mid = request.POST.get('mid', '').strip()
+            mode = request.POST.get('mode', 'add')  # 'add' or 'update'
 
             if not mid:
-                return JsonResponse("Match Not Found", safe=False, status=400)
+                return JsonResponse({"error": "Match Not Found"}, status=400)
 
             try:
                 match = Match.objects.get(match_id=int(mid))
+
+                # Check if squad exists in 'add' mode
+                if mode == 'add' and MatchSquad.objects.filter(match=match).exists():
+                    return JsonResponse({"error": "Squad already exists for this match. Use Update mode."}, status=400)
 
                 teams = [[match.team1.tid, match.team1.tname],
                          [match.team2.tid, match.team2.tname]]
 
                 team1_players = list(Player.objects.filter(teams__tid=match.team1.tid).values('pid', 'pname'))
                 team2_players = list(Player.objects.filter(teams__tid=match.team2.tid).values('pid', 'pname'))
-
-
+                
                 context = {
-                    "teams" : teams,
-                    "team1_players" : team1_players,
-                    "team2_players" : team2_players,
+                    "teams": teams,
+                    "team1_players": team1_players,
+                    "team2_players": team2_players,
+                    "existing_squad": {}  # Default to empty
                 }
 
+                # If in update mode, fetch the existing squad data
+                if mode == 'update':
+                    squad_data = MatchSquad.objects.filter(match=match).values(
+                        'player__pid', 'is_playing'
+                    )
+                    # Format for easy JS lookup: { 'player_id': { 'is_playing': true/false } }
+                    existing_squad = {
+                        entry['player__pid']: {
+                            'is_playing': entry['is_playing']
+                        } for entry in squad_data
+                    }
+                    context['existing_squad'] = existing_squad
+                
                 return JsonResponse(context)
+            
             except Match.DoesNotExist:
                 return JsonResponse({"error": "Match not found"}, status=404)
             except ValueError:
@@ -282,6 +312,7 @@ def match_squad(request):
         if "msave" in request.POST:
             mid = request.POST.get('mid', '').strip()
             players_json = request.POST.get('players', '[]')
+            mode = request.POST.get('mode', 'add')  # Get the mode
 
             # Check if match exists
             try:
@@ -289,9 +320,15 @@ def match_squad(request):
             except Match.DoesNotExist:
                 return JsonResponse({"error": "Match not found"}, status=404)
 
-            # Check if squad already exists for this match
-            if MatchSquad.objects.filter(match=match).exists():
-                return JsonResponse({"error": "Squad already exists for the selected match"}, status=400)
+            # --- This is the key update logic ---
+            if mode == 'update':
+                # Delete all existing squad entries for this match before re-adding
+                MatchSquad.objects.filter(match=match).delete()
+            elif mode == 'add':
+                # Double-check squad doesn't exist (in case user ignored 'chkmatch' warning)
+                if MatchSquad.objects.filter(match=match).exists():
+                    return JsonResponse({"error": "Squad already exists for the selected match"}, status=400)
+            # --- End update logic ---
 
             # Parse players list
             try:
@@ -299,21 +336,16 @@ def match_squad(request):
             except json.JSONDecodeError:
                 return JsonResponse({"error": "Invalid player data"}, status=400)
 
-            # Loop and save to MatchSquad
+            # Loop and save to MatchSquad (this logic is the same for add and update)
             for entry in players:
                 try:
-                    is_playing = bool(entry[0])   # Index 0
-                    pname = entry[1].strip()      # Index 1
-                    team_name = entry[2].strip()
+                    is_playing = bool(entry[0])    # Index 0
+                    pname = entry[1].strip()       # Index 1
+                    team_name = entry[2].strip()   # Index 2
 
-
-                    # Fetch player and team objects
                     team = Team.objects.get(tname=team_name)
+                    player = Player.objects.get(pname=pname, teams=team) # More specific query
 
-                    # Get Player object by pname and team (assumes players are unique per team)
-                    player = Player.objects.get(pname=pname)
-
-                    # Save to MatchSquad
                     MatchSquad.objects.create(
                         match=match,
                         team=team,
@@ -321,17 +353,16 @@ def match_squad(request):
                         is_playing=is_playing
                     )
                 except (Player.DoesNotExist, Team.DoesNotExist):
-                    continue  # Or log error and continue
+                    # Log this error in a real application
+                    print(f"Warning: Could not find player '{pname}' in team '{team_name}'. Skipping.")
+                    continue 
 
             match.is_active = True
             match.save()
 
             return JsonResponse({"message": "Squad saved successfully"})
 
-        return JsonResponse("chkmatch not found in POST", safe=False, status=400)
-
-    return render(request, 'match_squad.html', {'matches': matches})
-
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 
 @csrf_exempt
