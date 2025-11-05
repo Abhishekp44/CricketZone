@@ -277,8 +277,8 @@ def match_squad(request):
                 teams = [[match.team1.tid, match.team1.tname],
                          [match.team2.tid, match.team2.tname]]
 
-                team1_players = list(Player.objects.filter(teams__tid=match.team1.tid).values('pid', 'pname'))
-                team2_players = list(Player.objects.filter(teams__tid=match.team2.tid).values('pid', 'pname'))
+                team1_players = list(Player.objects.filter(teams__tid=match.team1.tid).order_by('pname').values('pid', 'pname'))
+                team2_players = list(Player.objects.filter(teams__tid=match.team2.tid).order_by('pname').values('pid', 'pname'))
                 
                 context = {
                     "teams": teams,
