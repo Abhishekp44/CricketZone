@@ -10,6 +10,42 @@
         text-overflow: ellipsis;
         width: 100%; 
     }
+
+    /* --- UPDATED STYLES --- */
+    
+    /* This makes the row clickable (unchanged) */
+    .player-row {
+        cursor: pointer;
+        transition: background-color 0.1s ease-in-out;
+    }
+
+    /* * THE FIX:
+     * 1. We apply styles to the <td> (cells) *within* the row.
+     * 2. We use !important to override the 'custom-table' styles.
+    */
+    
+    /* State 1: Yellow (for "In Squad") */
+    .player-row.squad-selected td {
+        background-color: #bba000 !important; /* Darker yellow */
+        color: #fff !important; /* Ensure text is readable */
+    }
+    
+    /* State 2: Green (for "Playing 11") */
+    .player-row.playing-selected td {
+        background-color: #008000 !important; /* Dark green */
+        color: #fff !important; /* Ensure text is readable */
+    }
+    
+    /* We must also update the :hover style to target the <td> */
+    .player-row:hover td {
+        background-color: #444 !important; 
+    }
+    
+    /* Hide the old "Select" and "Is Playing" columns (unchanged) */
+    .col-select, .col-playing {
+        display: none;
+    }
+    /* --- END UPDATED STYLES --- */
 </style>
 
 <div class="site-section bg-dark">
@@ -48,8 +84,8 @@
                     <table class="table custom-table">
                         <thead>
                             <tr>
-                                <th>Select</th>
-                                <th>Is Playing</th>
+                                <th class="col-select">Select</th>
+                                <th class="col-playing">Is Playing</th>
                                 <th>Player Name</th>
                             </tr>
                         </thead>
@@ -62,8 +98,8 @@
                     <table class="table custom-table">
                         <thead>
                             <tr>
-                                <th>Select</th>
-                                <th>Is Playing</th>
+                                <th class="col-select">Select</th>
+                                <th class="col-playing">Is Playing</th>
                                 <th>Player Name</th>
                             </tr>
                         </thead>
@@ -80,7 +116,7 @@
     </div>
 </div>
 <script>
-    // --- NEW: Storing matches from Django context ---
+    // --- Storing matches from Django context (unchanged) ---
     const inactiveMatches = [
         {% for match in inactive_matches %}
         { id: '{{ match.match_id }}', text: '{{ match }}' },
@@ -93,36 +129,27 @@
     ];
 
     let team1, team2;
-    const csrftoken = getCookie('csrftoken'); // Assumes getCookie function is present
+    const csrftoken = getCookie('csrftoken'); 
 
-    // --- NEW: Run on page load ---
+    // --- Run on page load (unchanged) ---
     document.addEventListener('DOMContentLoaded', function() {
-        // Set initial mode and populate dropdown
         updateMatchDropdown();
-
-        // Add listeners to radio buttons
         document.getElementById('modeAdd').addEventListener('change', updateMatchDropdown);
         document.getElementById('modeUpdate').addEventListener('change', updateMatchDropdown);
     });
 
-    // --- NEW: Function to update dropdown based on mode ---
+    // --- Function to update dropdown based on mode (unchanged) ---
     function updateMatchDropdown() {
         const mode = document.querySelector('input[name="squadMode"]:checked').value;
         const matchSelect = document.getElementById('match');
         const matches = (mode === 'add') ? inactiveMatches : activeMatches;
 
-        // Clear existing options and tables
         matchSelect.innerHTML = '';
         $('#team1_players').empty();
         $('#team2_players').empty();
         $('#t1_name').text('Team 1 Players');
         $('#t2_name').text('Team 2 Players');
-
-
-        // Add default option
         matchSelect.add(new Option('---Select Match---', ''));
-
-        // Populate with new options
         matches.forEach(function(match) {
             matchSelect.add(new Option(match.text, match.id));
         });
@@ -144,11 +171,10 @@
         return cookieValue;
     }
 
-    // --- MODIFIED: chkmatch() ---
+    // --- chkmatch() (unchanged, still calls the modified fillPlayerTable) ---
     function chkmatch() {
         var mid = document.getElementById("match").value;
         
-        // Clear tables if user selects default
         if (!mid) { 
             $('#team1_players').empty();
             $('#team2_players').empty();
@@ -157,20 +183,18 @@
             return;
         }
 
-        var mode = document.querySelector('input[name="squadMode"]:checked').value; // Get current mode
+        var mode = document.querySelector('input[name="squadMode"]:checked').value;
         var chkmatch = 'chkmatch';
 
         $.ajax({
             url: 'match_squad',
             type: 'POST',
             headers: { 'X-CSRFToken': csrftoken },
-            data: { "mid": mid, "chkmatch": chkmatch, "mode": mode }, // Send mode
+            data: { "mid": mid, "chkmatch": chkmatch, "mode": mode },
             success: function (response) {
-                // MODIFIED: Handle JSON error response
                 if (response.error) {
                     alert(response.error);
                     document.getElementById('match').value = '';
-                    // Clear tables on error
                     $('#team1_players').empty();
                     $('#team2_players').empty();
                     $('#t1_name').text('Team 1 Players');
@@ -180,9 +204,7 @@
                     teams = response["teams"];
                     t1_players = response["team1_players"];
                     t2_players = response["team2_players"];
-                    // NEW: Get existing squad data (will be {} in 'add' mode)
                     let existing_squad = response.existing_squad || {}; 
-
                     console.log("Existing Squad:", existing_squad);
 
                     team1 = teams[0][1];
@@ -192,14 +214,12 @@
                     document.getElementById("t2_name").innerText = `${team2} Players`;
 
                     let table1 = document.getElementById("team1_players").id;
-                    // MODIFIED: Pass existing_squad to fillPlayerTable
                     fillPlayerTable(table1, t1_players, existing_squad) 
                     let table2 = document.getElementById("team2_players").id;
                     fillPlayerTable(table2, t2_players, existing_squad)
                 }
             },
             error: function (xhr, status, error) {
-                // Improved error logging
                 let errorMsg = "An unknown error occurred.";
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     errorMsg = xhr.responseJSON.error;
@@ -216,8 +236,39 @@
         });
     }
 
-    // --- MODIFIED: fillPlayerTable() ---
-    // Now accepts `existing_squad` to pre-check boxes
+    // --- *** NEW FUNCTION *** ---
+    // Handles the 3-state click logic
+    function togglePlayerState(row) {
+        // Find the hidden checkboxes within this row
+        const playerCheckbox = row.querySelector('input[name*="_player"]');
+        const playingCheckbox = row.querySelector('input[name*="_is_playing"]');
+
+        const isSelected = playerCheckbox.checked;
+        const isPlaying = playingCheckbox.checked;
+
+        if (!isSelected && !isPlaying) {
+            // State 0 (None) -> State 1 (Squad)
+            playerCheckbox.checked = true;
+            playingCheckbox.checked = false;
+            row.classList.remove('playing-selected');
+            row.classList.add('squad-selected');
+        } else if (isSelected && !isPlaying) {
+            // State 1 (Squad) -> State 2 (Playing 11)
+            playerCheckbox.checked = true;
+            playingCheckbox.checked = true;
+            row.classList.remove('squad-selected');
+            row.classList.add('playing-selected');
+        } else { 
+            // State 2 (Playing 11) -> State 0 (None)
+            playerCheckbox.checked = false;
+            playingCheckbox.checked = false;
+            row.classList.remove('playing-selected');
+            row.classList.remove('squad-selected');
+        }
+    }
+
+    // --- *** MODIFIED: fillPlayerTable() *** ---
+    // Now builds clickable rows and sets initial class
     function fillPlayerTable(tableId, players, existing_squad) {
         console.log("Filling table:", tableId, players);
 
@@ -229,44 +280,50 @@
             const pid = player.pid;
             const pname = player.pname;
 
-            // --- NEW: Logic to pre-check boxes ---
-            let player_checked = "";
-            let is_playing_checked = "";
+            // Determine initial state from existing_squad
+            let player_checked_str = "";
+            let is_playing_checked_str = "";
+            let row_class = ""; // State 0 (None)
             
-            // Check if this player is in the existing squad
             if (existing_squad && existing_squad[pid]) { 
-                player_checked = "checked"; // Player is in the squad
+                player_checked_str = "checked";
                 if (existing_squad[pid].is_playing) {
-                    is_playing_checked = "checked"; // Player is also in the playing 11
+                    is_playing_checked_str = "checked"; 
+                    row_class = "playing-selected"; // State 2 (Green)
+                } else {
+                    row_class = "squad-selected"; // State 1 (Yellow)
                 }
             }
-            // --- End new logic ---
 
+            // MODIFIED: This row is now clickable and has classes
             const row = `
-            <tr>
-                <td>
+            <tr class="player-row ${row_class}" onclick="togglePlayerState(this)">
+                <td class="col-select">
                     <input type="checkbox" name="${tableId}_player" 
                            id="${tableId}_player_${count}" 
-                           value="${pid}" ${player_checked}> </td>
-                <td>
+                           value="${pid}" ${player_checked_str}> 
+                </td>
+                <td class="col-playing">
                     <input type="checkbox" name="${tableId}_is_playing" 
-                           id="${tableId}_is_playing_${count}" ${is_playing_checked}> </td>
+                           id="${tableId}_is_playing_${count}" ${is_playing_checked_str}> 
+                </td>
                 <td>
                     <label for="${tableId}_player_${count}">${pname}</label>
                 </td>
             </tr>
-        `;
+            `;
 
             tbody.append(row);
             count += 1;
         });
     }
 
-    // --- MODIFIED: chksave() ---
+    // --- *** MODIFIED: chksave() *** ---
+    // Now sends Player ID (pid) instead of Player Name (pname)
     function chksave() {
         let msave = "S";
         var mid = document.getElementById("match").value;
-        var mode = document.querySelector('input[name="squadMode"]:checked').value; // NEW: Get current mode
+        var mode = document.querySelector('input[name="squadMode"]:checked').value;
         
         if (!mid) {
             alert("Please select a match.");
@@ -284,37 +341,35 @@
 
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
-                const inputs = row.getElementsByTagName("input");
-                const label = row.getElementsByTagName("label")[0];
+                
+                // --- START OF FIX ---
+                // Use specific "ends-with" attribute selectors [$] to find the inputs.
+                // This is much safer than input.name.includes()
+                const playerCheckbox = row.querySelector('input[name$="_player"]');
+                const playingCheckbox = row.querySelector('input[name$="_is_playing"]');
+                
+                // If checkboxes aren't found (e.g., header row), skip
+                if (!playerCheckbox || !playingCheckbox) continue; 
 
-                let selected = false;
-                let pid = null; // We don't need pid for the save, but good to have
-                let is_playing = false;
-                let pname = label ? label.innerText : "";
+                const selected = playerCheckbox.checked;
+                const is_playing = playingCheckbox.checked;
+                const pid = playerCheckbox.value; // Get value from the *player* checkbox
+                // --- END OF FIX ---
 
-                for (let input of inputs) {
-                    if (input.name.includes("_player") && input.checked) {
-                        selected = true;
-                        pid = input.value;
-                    }
-                    if (input.name.includes("_is_playing")) {
-                        is_playing = input.checked;
-                    }
-                }
-
-                // Only add to list if the player is selected
+                // Only add to list if the player is selected (unchanged)
                 if (selected) {
-                    playerlist.push([is_playing, pname, tableInfo.team]);
+                    playerlist.push([is_playing, pid, tableInfo.team]);
                 }
             }
         });
 
-        console.log("Prepared Player List:", playerlist);
+        console.log("Prepared Player List (using PID):", playerlist);
         if (playerlist.length === 0) {
             alert("Please select at least one player.");
             return;
         }
 
+        // --- AJAX call is unchanged ---
         $.ajax({
             url: 'match_squad',
             type: 'POST',
@@ -323,21 +378,20 @@
                 "mid": mid,
                 "msave": msave,
                 "players": JSON.stringify(playerlist),
-                "mode": mode // NEW: Send the mode
+                "mode": mode
             },
             success: function (response) {
                 if (response.error) {
                     alert(response.error);
                 } else if (response.message) {
                     alert(response.message);
-                    window.location.href = '/admin_dashboard'; // Or wherever you want to redirect
+                    window.location.href = '/admin_dashboard'; 
                 } else {
                     alert("Unexpected response");
                 }
             },
             error: function (xhr, status, error) {
-                 // Improved error logging
-                 let errorMsg = "An unknown error occurred while saving.";
+               let errorMsg = "An unknown error occurred while saving.";
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     errorMsg = xhr.responseJSON.error;
                 } else {
@@ -348,6 +402,5 @@
             }
         });
     }
-
 </script>
 {% endblock 'main' %}

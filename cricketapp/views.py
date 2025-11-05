@@ -247,7 +247,7 @@ def admin_required_404(view_func):
 @admin_required_404
 def match_squad(request):
     
-    # --- GET Request Logic ---
+    # --- GET Request Logic (unchanged) ---
     if request.method == 'GET':
         inactive_matches = Match.objects.filter(is_active=False)
         active_matches = Match.objects.filter(is_active=True)
@@ -259,9 +259,8 @@ def match_squad(request):
 
     # --- POST Request Logic ---
     if request.method == 'POST':
-        print("POST received")
-        print("Request.POST:", request.POST)
 
+        # --- "chkmatch" block (unchanged) ---
         if "chkmatch" in request.POST:
             mid = request.POST.get('mid', '').strip()
             mode = request.POST.get('mode', 'add')  # 'add' or 'update'
@@ -272,7 +271,6 @@ def match_squad(request):
             try:
                 match = Match.objects.get(match_id=int(mid))
 
-                # Check if squad exists in 'add' mode
                 if mode == 'add' and MatchSquad.objects.filter(match=match).exists():
                     return JsonResponse({"error": "Squad already exists for this match. Use Update mode."}, status=400)
 
@@ -289,7 +287,6 @@ def match_squad(request):
                     "existing_squad": {}  # Default to empty
                 }
 
-                # If in update mode, fetch the existing squad data
                 if mode == 'update':
                     squad_data = MatchSquad.objects.filter(match=match).values(
                         'player__pid', 'is_playing'
@@ -309,42 +306,39 @@ def match_squad(request):
             except ValueError:
                 return JsonResponse({"error": "Invalid Match ID"}, status=400)
 
+        # --- "msave" block (*** MODIFIED ***) ---
         if "msave" in request.POST:
             mid = request.POST.get('mid', '').strip()
             players_json = request.POST.get('players', '[]')
-            mode = request.POST.get('mode', 'add')  # Get the mode
+            mode = request.POST.get('mode', 'add')
 
-            # Check if match exists
             try:
                 match = Match.objects.get(pk=mid)
             except Match.DoesNotExist:
                 return JsonResponse({"error": "Match not found"}, status=404)
 
-            # --- This is the key update logic ---
             if mode == 'update':
-                # Delete all existing squad entries for this match before re-adding
                 MatchSquad.objects.filter(match=match).delete()
             elif mode == 'add':
-                # Double-check squad doesn't exist (in case user ignored 'chkmatch' warning)
                 if MatchSquad.objects.filter(match=match).exists():
                     return JsonResponse({"error": "Squad already exists for the selected match"}, status=400)
-            # --- End update logic ---
 
-            # Parse players list
             try:
                 players = json.loads(players_json)
             except json.JSONDecodeError:
                 return JsonResponse({"error": "Invalid player data"}, status=400)
 
-            # Loop and save to MatchSquad (this logic is the same for add and update)
             for entry in players:
                 try:
-                    is_playing = bool(entry[0])    # Index 0
-                    pname = entry[1].strip()       # Index 1
-                    team_name = entry[2].strip()   # Index 2
+                    is_playing = bool(entry[0])    # Index 0 (unchanged)
+                    player_id = entry[1]           # *** MODIFIED: This is now pid ***
+                    team_name = entry[2].strip()   # Index 2 (unchanged)
 
                     team = Team.objects.get(tname=team_name)
-                    player = Player.objects.get(pname=pname, teams=team) # More specific query
+                    
+                    # *** MODIFIED: Look up by 'pid' (player_id) directly ***
+                    # This is much safer than using pname
+                    player = Player.objects.get(pid=player_id) 
 
                     MatchSquad.objects.create(
                         match=match,
@@ -354,8 +348,11 @@ def match_squad(request):
                     )
                 except (Player.DoesNotExist, Team.DoesNotExist):
                     # Log this error in a real application
-                    print(f"Warning: Could not find player '{pname}' in team '{team_name}'. Skipping.")
+                    print(f"Warning: Could not find player ID '{player_id}' or team '{team_name}'. Skipping.")
                     continue 
+                except (IndexError, TypeError):
+                    print(f"Warning: Malformed player entry '{entry}'. Skipping.")
+                    continue
 
             match.is_active = True
             match.save()
@@ -363,7 +360,6 @@ def match_squad(request):
             return JsonResponse({"message": "Squad saved successfully"})
 
     return JsonResponse({"error": "Invalid request"}, status=400)
-
 
 @csrf_exempt
 @admin_required_404
