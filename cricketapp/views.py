@@ -1554,29 +1554,51 @@ def view_ticket(request, booking_id):
     return render(request, 'view_ticket.html', {'booking': booking})
 
 def download_ticket_pdf(request, booking_id):
-    booking = get_object_or_404(TicketBooking, id=booking_id)
-    qr_data_url = request.build_absolute_uri()
-    template = get_template('ticket_pdf.html')
+    """
+    This view generates and downloads a ticket as a PDF.
+    """
+    try:
+        # 1. Get the booking object
+        booking = TicketBooking.objects.get(id=booking_id)
+        
+        # You might want to add a check here to ensure the user is allowed to
+        # download this ticket (e.g., if request.user == booking.user)
 
-    # --- ADD THESE TWO LINES ---
-    base_url = f"{request.scheme}://{request.get_host()}"
+    except TicketBooking.DoesNotExist:
+        return HttpResponse("Booking not found.", status=404)
+
+    # 2. Define the context for the template
+    # The 'base_url' is CRITICAL for images to load in the PDF
     context = {
         'booking': booking,
-        'qr_data_url': qr_data_url,
-        'base_url': base_url, # Pass the base URL to the template
+        'base_url': request.build_absolute_uri('/'), # Gets 'http://127.0.0.1:8000'
+        'qr_data_url': request.build_absolute_uri(f'/view-ticket/{booking.id}/') # Example QR data
     }
 
-    # The rest of the view remains the same
+    # 3. Load the *correct* PDF template
+    template = get_template('ticket_pdf.html')
     html = template.render(context)
-    result = BytesIO()
-    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
 
+    # 4. Create the PDF
+    result = BytesIO() # In-memory buffer for the PDF
+    
+    # pisa.CreatePDF() converts the HTML to PDF
+    pdf = pisa.CreatePDF(
+        src=BytesIO(html.encode("UTF-8")), # source HTML
+        dest=result,                        # destination file/buffer
+        encoding='UTF-8'
+    )
+
+    # 5. Check for errors and return the HttpResponse
     if not pdf.err:
+        # If PDF creation is successful, return it as a download
         response = HttpResponse(result.getvalue(), content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="ticket_{booking.id}.pdf"'
+        # This header tells the browser to download the file
+        response['Content-Disposition'] = f'attachment; filename="Ticket-{booking.id}.pdf"'
         return response
 
-    return HttpResponse("Error Rendering PDF", status=400)
+    # If there was an error
+    return HttpResponse(f"Error generating PDF: {pdf.err}", status=500)
 
 # def add_to_cart(request, ticket_id):
 #     ticket = get_object_or_404(Ticket, id=ticket_id)
