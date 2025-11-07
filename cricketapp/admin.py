@@ -133,12 +133,13 @@ class InningAdmin(ImportExportModelAdmin):
 @admin.register(BattingScore)
 class BattingScoreAdmin(ImportExportModelAdmin):
     list_display = ('inning', 'player', 'runs', 'balls', 'fours', 'sixes', 'dismissal_type', 'bowler', 'fielder')
-    list_filter = ('dismissal_type','inning__batting_team','inning__match')
+    list_filter = ('dismissal_type','inning__batting_team','inning__match__date')
     search_fields = ('player__pname', 'inning__inning_id', 'inning__batting_team__tname')
 
 @admin.register(BowlingScore)
 class BowlingScoreAdmin(ImportExportModelAdmin):
     list_display = ('inning', 'player', 'overs', 'maidens', 'runs_conceded', 'wickets', 'no_balls', 'wides')
+    list_filter = ('inning__batting_team','inning__match__date')
     search_fields = ('player__pname', 'inning__inning_id', 'inning__batting_team__tname')
 
 @admin.register(FallOfWicket)
