@@ -1178,7 +1178,7 @@ def standings_view(request):
     selected_tournament_id = request.GET.get('tournament_id')
     
     # Get all tournaments for the dropdown menu
-    tournaments = Tournament.objects.all().order_by('name')
+    tournaments = Tournament.objects.filter(is_tour=False).order_by('name')
     
     standings = None
     selected_tournament = None
