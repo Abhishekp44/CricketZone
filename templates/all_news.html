@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block 'main' %}
+
+<div class="site-section">
+  <div class="container">
+
+    <div class="row my-5">
+      <div class="col-12 title-section" style="text-align: center;">
+        <h1>All News</h1>
+        <p>Stay up to date with the latest stories from the world of cricket.</p>
+      </div>
+    </div>
+    <div class="row justify-content-center">
+
+      <div class="col-lg-10">
+
+        <div class="news-post-holder">
+          {% for article in articles %}
+          
+          <div class="mb-4">
+            <div class="row">
+              <div class="col-md-5">
+                <img class="img-fluid rounded" src="{{ article.image.url }}" alt="{{ article.title }}">
+              </div>
+              <div class="col-md-7">
+                <div class="news-post-detail">
+                  <span class="date">{{ article.date|date:"d M Y" }}</span>
+                  <h2><a href="{% url 'news_detail' article.id %}">{{ article.title }}</a></h2>
+                  <p>{{ article.content|truncatewords:30 }}</p>
+                  <p><a href="{% url 'news_detail' article.id %}" class="more light">Read More</a></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p>No news articles found.</p>
+          {% endfor %}
+        </div>
+      </div>
+      </div> </div> </div> {% endblock 'main' %}

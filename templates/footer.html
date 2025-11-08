@@ -11,41 +11,38 @@
           </div>
           </div>
         </div>
-        <div class="col-lg-4 d-flex justify-content-center">
+        
+        <div class="col-lg-4 d-flex justify-content-md-center">
           <div class="widget mb-3">
             <ul class="list-unstyled links">
               <li><a href="/teams">Teams</a></li>
               <li><a href="/standings">Standings</a></li>
               <li><a href="/tickets">Online Tickets</a></li>
               <li><a href="/matches">Matches Result</a></li>
+              <li><a href="{% url 'all_news' %}">All News</a></li>
             </ul>
           </div>
         </div>
-        <div class="col-lg-4 d-flex justify-content-center">
+        
+        <div class="col-lg-4 d-flex justify-content-md-center">
           <div class="widget mb-3">
             <ul class="list-unstyled links">
               <li><a href="#">Terms And Conditions</a></li>
               <li><a href="#">Payment and Prices</a></li>
               <li><a href="#">Contact Us</a></li>
-              <li><a href="#">About Us</a></li>
-              <li><a href="#">Privacy and Policy</a></li>
+              <li><a href="{% url 'about_us' %}">About Us</a></li> <li><a href="#">Privacy and Policy</a></li>
             </ul>
           </div>
         </div>
         
-
-        
-
       </div>
 
       <div class="row text-center">
         <div class="col-md-12">
           <div class=" pt-5">
             <p>
-              <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
               Copyright &copy;Abhishek Phapale 2024
-              <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-            </p>
+              </p>
           </div>
         </div>
 
@@ -56,8 +53,6 @@
 
 
 </div>
-<!-- .site-wrap -->
-
 <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
 <script src="{% static 'js/jquery-migrate-3.0.1.min.js' %}"></script>
 <script src="{% static 'js/jquery-ui.js' %}"></script>

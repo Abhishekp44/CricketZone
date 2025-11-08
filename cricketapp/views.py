@@ -217,6 +217,15 @@ def home(request):
     }
     return render(request, 'index.html',context)
 
+def all_news(request):
+    # This new view gets ALL articles
+    all_articles = NewsArticle.objects.all().order_by('-date') 
+    
+    context = {
+        'articles': all_articles
+    }
+    return render(request, 'all_news.html', context)
+
 def news_detail(request, article_id):
     article = get_object_or_404(NewsArticle, id=article_id)
     
