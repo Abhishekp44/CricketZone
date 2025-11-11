@@ -77,48 +77,67 @@ class PlayerAdmin(ImportExportModelAdmin):
 class TeamAdmin(ImportExportModelAdmin):
     list_display = ('tid', 'tname')
 
-# Inlines remain the same
 class BattingScoreInline(admin.TabularInline):
     model = BattingScore
     extra = 11
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """
-        Filters the 'player' dropdown to only show players from the
-        inning's batting team.
+        Filters 'player' to the batting team.
+        Filters 'bowler' and 'fielder' to the bowling team.
         """
-        if db_field.name == 'player':
-            # Get the parent Inning's ID from the URL
-            object_id = request.resolver_match.kwargs.get('object_id')
+        # Get the parent Inning's ID from the URL
+        object_id = request.resolver_match.kwargs.get('object_id')
+        
+        if not object_id:
+            # This is a new Inning (add page). No players to show yet.
+            kwargs['queryset'] = Player.objects.none()
+            return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-            if object_id:
-                try:
-                    # Get the parent Inning object
-                    inning = Inning.objects.get(pk=object_id)
-                    match = inning.match
-                    batting_team = inning.batting_team
+        try:
+            # Get the parent Inning object
+            inning = Inning.objects.get(pk=object_id)
+            match = inning.match
+            batting_team = inning.batting_team
 
-                    # Get player IDs from the squad for that match and team
-                    # We also check 'is_playing=True' from your MatchSquad model
+            # 1. --- Filter for the Batsman ('player') ---
+            if db_field.name == 'player':
+                # Get player IDs from the squad for the BATTING team
+                player_ids = MatchSquad.objects.filter(
+                    match=match,
+                    team=batting_team,
+                    is_playing=True
+                ).values_list('player_id', flat=True)
+
+                kwargs['queryset'] = Player.objects.filter(pk__in=player_ids)
+
+            # 2. --- Filter for 'bowler' and 'fielder' ---
+            elif db_field.name in ('bowler', 'fielder'):
+                # Determine the BOWLING team
+                bowling_team = None
+                if match.team1_id == batting_team.pk:
+                    bowling_team = match.team2
+                else:
+                    bowling_team = match.team1
+                
+                if bowling_team:
+                    # Get player IDs from the squad for the BOWLING team
                     player_ids = MatchSquad.objects.filter(
                         match=match,
-                        team=batting_team,
+                        team=bowling_team,
                         is_playing=True
                     ).values_list('player_id', flat=True)
-
-                    # Filter the player dropdown to only these players
+                    
                     kwargs['queryset'] = Player.objects.filter(pk__in=player_ids)
-                
-                except Inning.DoesNotExist:
-                    # Fallback: show no players if inning not found
+                else:
+                    # No bowling team found
                     kwargs['queryset'] = Player.objects.none()
-            else:
-                # This is a new Inning (add page), so no team is selected yet.
-                # Show no players until the Inning is saved.
-                kwargs['queryset'] = Player.objects.none()
+
+        except Inning.DoesNotExist:
+            # Fallback: show no players if inning not found
+            kwargs['queryset'] = Player.objects.none()
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
 
 class BowlingScoreInline(admin.TabularInline):
     model = BowlingScore
