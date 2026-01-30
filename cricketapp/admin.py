@@ -191,6 +191,40 @@ class FallOfWicketInline(admin.TabularInline):
     model = FallOfWicket
     extra = 5
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        Filters the 'player' dropdown to only show players from the 
+        team that is currently batting in this inning.
+        """
+        if db_field.name == 'player':
+            # Extract the Inning ID from the URL path
+            object_id = request.resolver_match.kwargs.get('object_id')
+
+            if object_id:
+                try:
+                    # Get the current Inning and its associated batting team
+                    inning = Inning.objects.get(pk=object_id)
+                    match = inning.match
+                    batting_team = inning.batting_team
+
+                    # Get player IDs from the MatchSquad for the batting team
+                    player_ids = MatchSquad.objects.filter(
+                        match=match,
+                        team=batting_team,
+                        is_playing=True
+                    ).values_list('player_id', flat=True)
+
+                    # Apply the filter to the player queryset
+                    kwargs['queryset'] = Player.objects.filter(pk__in=player_ids)
+                
+                except Inning.DoesNotExist:
+                    kwargs['queryset'] = Player.objects.none()
+            else:
+                # Fallback for the 'Add' page where the Inning object doesn't exist yet
+                kwargs['queryset'] = Player.objects.none()
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 class ExtrasInline(admin.StackedInline):
     model = Extras
     max_num = 1
